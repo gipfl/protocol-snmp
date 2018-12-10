@@ -12,9 +12,9 @@ class SnmpMessageInspector
         }
 
         /** @var VarBind $varBind */
-        foreach ($message->getPdu()->getVarBinds() as $varBind) {
+        foreach ($message->getPdu()->getVarBinds()->iterate() as $varBind) {
             printf(
-                "%s: :%s\n",
+                "%s: %s\n",
                 $varBind->getOid(),
                 $varBind->getValue()->getReadableValue()
             );
