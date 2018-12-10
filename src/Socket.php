@@ -2,6 +2,8 @@
 
 namespace gipfl\Protocol\Snmp;
 
+use Evenement\EventEmitterInterface;
+use Evenement\EventEmitterTrait;
 use Icinga\Application\Logger;
 use React\EventLoop\LoopInterface;
 use React\Datagram\Factory as UdpFactory;
@@ -9,8 +11,10 @@ use React\Datagram\Socket as UdpSocket;
 use React\Promise\Deferred;
 use React\Promise\FulfilledPromise;
 
-class Socket
+class Socket implements EventEmitterInterface
 {
+    use EventEmitterTrait;
+
     /** @var LoopInterface */
     protected $loop;
 
@@ -217,9 +221,14 @@ class Socket
 
     protected function handleData($data, $peer, UdpSocket $socket)
     {
-        Logger::debug("Got response from $peer");
+        Logger::debug("Got message from $peer");
         $message = SnmpMessage::fromBinary($data);
         $pdu = $message->getPdu();
+
+        if ($pdu instanceof TrapV2) {
+            $this->emit('trap', [$message]);
+            return;
+        }
         $requestId = $pdu->getRequestId();
         if (isset($this->pendingRequests[$requestId])) {
             $deferred = $this->pendingRequests[$requestId];

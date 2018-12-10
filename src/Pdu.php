@@ -99,6 +99,9 @@ abstract class Pdu
             case self::INFORM_REQUEST:
                 $pdu = new InformRequest($varBinds);
                 break;
+            case self::TRAP_V2:
+                $pdu = new TrapV2($varBinds);
+                break;
             default:
                 throw new \InvalidArgumentException(sprintf(
                     'Invalid PDU tag %s',
