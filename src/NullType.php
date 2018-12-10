@@ -15,6 +15,11 @@ class NullType extends DataType
         return new static(null);
     }
 
+    public function getReadableValue()
+    {
+        return '(null)';
+    }
+
     public static function fromASN1(UnspecifiedType $element)
     {
         $element->asNull();
