@@ -10,6 +10,11 @@ class Integer32 extends DataType
 {
     protected $tag = Element::TYPE_INTEGER;
 
+    public static function fromInteger($int)
+    {
+        return new static((int) $int);
+    }
+
     public static function fromASN1(UnspecifiedType $element)
     {
         return new static($element->asInteger()->intNumber());

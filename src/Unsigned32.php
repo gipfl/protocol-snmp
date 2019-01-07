@@ -25,6 +25,12 @@ class Unsigned32 extends DataType
         parent::__construct($value);
     }
 
+    public static function fromInteger($int)
+    {
+        new ApplicationType();
+        return new static((int) $int);
+    }
+
     public static function fromASN1(UnspecifiedType $element)
     {
         return new static($element->asApplication());

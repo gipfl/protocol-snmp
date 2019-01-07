@@ -10,6 +10,11 @@ class ObjectIdentifier extends DataType
 {
     protected $tag = Element::TYPE_OBJECT_IDENTIFIER;
 
+    public static function fromString($oid)
+    {
+        return new static($oid);
+    }
+
     public static function fromASN1(UnspecifiedType $element)
     {
         return new static($element->asObjectIdentifier()->oid());

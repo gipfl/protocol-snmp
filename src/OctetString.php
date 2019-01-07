@@ -10,6 +10,11 @@ class OctetString extends DataType
 {
     protected $tag = Element::TYPE_OCTET_STRING;
 
+    public static function fromString($string)
+    {
+        return new static($string);
+    }
+
     public static function fromASN1(UnspecifiedType $element)
     {
         return new static($element->asOctetString()->string());
