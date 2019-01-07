@@ -54,6 +54,13 @@ abstract class Pdu
         return $this->requestId;
     }
 
+    public function setRequestId($id)
+    {
+        $this->requestId = $id;
+
+        return $this;
+    }
+
     public function getVarBinds()
     {
         return $this->varBinds;

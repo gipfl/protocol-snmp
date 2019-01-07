@@ -2,9 +2,9 @@
 
 namespace gipfl\Protocol\Snmp;
 
+use Exception;
 use Evenement\EventEmitterInterface;
 use Evenement\EventEmitterTrait;
-use Icinga\Application\Logger;
 use React\EventLoop\LoopInterface;
 use React\Datagram\Factory as UdpFactory;
 use React\Datagram\Socket as UdpSocket;
@@ -164,6 +164,15 @@ class Socket implements EventEmitterInterface
         return $deferred->promise();
     }
 
+    public function sendTrap(SnmpMessage $trap, $destination)
+    {
+        if (strpos($destination, ':') === false) {
+            $destination .= ':162';
+        }
+
+        return $this->send($trap, $destination);
+    }
+
     protected function send(SnmpMessage $message, $destination)
     {
         $pdu = $message->getPdu();
@@ -221,12 +230,12 @@ class Socket implements EventEmitterInterface
 
     protected function handleData($data, $peer, UdpSocket $socket)
     {
-        Logger::debug("Got message from $peer");
+        // TODO: Logger::debug("Got message from $peer");
         $message = SnmpMessage::fromBinary($data);
         $pdu = $message->getPdu();
 
         if ($pdu instanceof TrapV2) {
-            $this->emit('trap', [$message]);
+            $this->emit('trap', [$message, $peer]);
             return;
         }
         $requestId = $pdu->getRequestId();
@@ -257,7 +266,7 @@ class Socket implements EventEmitterInterface
                 $deferred->resolve($result);
             }
         } else {
-            Logger::debug("Ignoring response for unknown requestId=$requestId");
+            // TODO: Logger::debug("Ignoring response for unknown requestId=$requestId");
         }
     }
 
