@@ -1,6 +1,6 @@
 <?php
 
-namespace gipfl\Protocol\Snmp;
+namespace gipfl\Protocol\Snmp\DataType;
 
 use ASN1\Element;
 use ASN1\Type\Primitive\OctetString as AsnType;
@@ -8,28 +8,27 @@ use ASN1\Type\Tagged\ApplicationType;
 use ASN1\Type\UnspecifiedType;
 use InvalidArgumentException;
 
-class NsapAddress extends DataType
+class IpAddress extends DataType
 {
-    protected $tag = self::NSAP_ADDRESS;
+    protected $tag = self::IP_ADDRESS;
 
     protected function __construct(ApplicationType $app)
     {
         $tag = $this->getTag();
-        $binary = $app->asImplicit(Element::TYPE_OCTET_STRING, $tag)->asOctetString()->string();
+        $binaryIp = $app->asImplicit(Element::TYPE_OCTET_STRING, $tag)->asOctetString()->string();
 
-        if (strlen($binary) > 20) {
+        if (strlen($binaryIp) !== 4) {
             throw new InvalidArgumentException(sprintf(
-                '0x%s is not a valid NSAP Address',
-                bin2hex($binary)
+                '0x%s is not a valid IpAddress',
+                bin2hex($binaryIp)
             ));
         }
-
-        parent::__construct($binary);
+        parent::__construct($binaryIp);
     }
 
     public function getReadableValue()
     {
-        return '0x' . bin2hex($this->rawValue);
+        return inet_ntop($this->rawValue);
     }
 
     public static function fromASN1(UnspecifiedType $element)

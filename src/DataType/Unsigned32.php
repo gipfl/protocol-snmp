@@ -1,6 +1,6 @@
 <?php
 
-namespace gipfl\Protocol\Snmp;
+namespace gipfl\Protocol\Snmp\DataType;
 
 use ASN1\Element;
 use ASN1\Type\Primitive\Integer;
@@ -8,20 +8,27 @@ use ASN1\Type\Tagged\ApplicationType;
 use ASN1\Type\UnspecifiedType;
 use InvalidArgumentException;
 
-class Counter64 extends DataType
+class Unsigned32 extends DataType
 {
-    protected $tag = self::COUNTER_64;
+    protected $tag = self::UNSIGNED_32;
 
     protected function __construct(ApplicationType $app)
     {
         $tag = $this->getTag();
         $value = $app->asImplicit(Element::TYPE_INTEGER, $tag)->asInteger()->intNumber();
-        if ($value < 0 || $value > 18446744073709551615) {
-            throw new InvalidArgumentException(
-                '%s is not a valid Counter64'
-            );
+        if ($value < 0 || $value > 4294967295) {
+            throw new InvalidArgumentException(sprintf(
+                '%s is not a valid unsigned integer',
+                $value
+            ));
         }
         parent::__construct($value);
+    }
+
+    public static function fromInteger($int)
+    {
+        new ApplicationType();
+        return new static((int) $int);
     }
 
     public static function fromASN1(UnspecifiedType $element)

@@ -1,6 +1,6 @@
 <?php
 
-namespace gipfl\Protocol\Snmp;
+namespace gipfl\Protocol\Snmp\DataType;
 
 class TimeTicks extends Unsigned32
 {

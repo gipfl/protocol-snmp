@@ -1,8 +1,8 @@
 <?php
 
-use gipfl\Protocol\Snmp\Integer32;
-use gipfl\Protocol\Snmp\ObjectIdentifier;
-use gipfl\Protocol\Snmp\OctetString;
+use gipfl\Protocol\Snmp\DataType\Integer32;
+use gipfl\Protocol\Snmp\DataType\ObjectIdentifier;
+use gipfl\Protocol\Snmp\DataType\OctetString;
 use gipfl\Protocol\Snmp\Socket;
 use gipfl\Protocol\Snmp\SnmpV2Message;
 use gipfl\Protocol\Snmp\TrapV2;

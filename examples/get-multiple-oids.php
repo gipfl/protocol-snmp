@@ -26,7 +26,7 @@ $oids = [
 
 foreach ($ips as $ip) {
     $socket->get($oids, $ip, $community)->then(function ($result) {
-        /** @var \gipfl\Protocol\Snmp\DataType $value */
+        /** @var \gipfl\Protocol\Snmp\DataType\DataType $value */
         foreach ($result as $key => $value) {
             printf("%s: %s\n", $key, $value->getReadableValue());
         }

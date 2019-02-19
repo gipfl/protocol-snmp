@@ -1,6 +1,6 @@
 <?php
 
-namespace gipfl\Protocol\Snmp;
+namespace gipfl\Protocol\Snmp\DataType;
 
 use ASN1\Element;
 use ASN1\Type\Primitive\OctetString as AsnType;

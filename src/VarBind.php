@@ -4,6 +4,8 @@ namespace gipfl\Protocol\Snmp;
 
 use ASN1\Type\Constructed\Sequence;
 use ASN1\Type\Primitive\ObjectIdentifier;
+use gipfl\Protocol\Snmp\DataType\DataType;
+use gipfl\Protocol\Snmp\DataType\NullType;
 
 class VarBind
 {
