@@ -2,9 +2,10 @@
 
 namespace gipfl\Protocol\Snmp;
 
-use Exception;
 use Evenement\EventEmitterInterface;
 use Evenement\EventEmitterTrait;
+use gipfl\Protocol\Snmp\DataType\DataType;
+use gipfl\Protocol\Snmp\DataType\DataTypeContextSpecific;
 use React\EventLoop\LoopInterface;
 use React\Datagram\Factory as UdpFactory;
 use React\Datagram\Socket as UdpSocket;
