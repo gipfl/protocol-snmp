@@ -20,6 +20,24 @@ class OctetString extends DataType
         return new static($element->asOctetString()->string());
     }
 
+    public function toArray()
+    {
+        return [
+            'type'  => 'octet_string',
+            'value' => $this->isUtf8Safe() ? $this->rawValue : '0x' . \bin2hex($this->rawValue),
+        ];
+    }
+
+    protected function isUtf8Safe()
+    {
+        if (\substr($this->rawValue, 0, 2) === '0x') {
+            return false;
+        }
+
+        // TODO: check for special characters
+        return false;
+    }
+
     public function toASN1()
     {
         return new AsnType($this->rawValue);

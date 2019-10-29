@@ -18,6 +18,37 @@ abstract class DataType
     const COUNTER_64 = 6;
     const UNSIGNED_32 = 7;
 
+    const TYPE_TO_NAME_MAP = [
+        self::IP_ADDRESS   => 'ip_address',
+        self::COUNTER_32   => 'counter32',
+        self::GAUGE_32     => 'gauge32',
+        self::TIME_TICKS   => 'time_ticks',
+        self::OPAQUE       => 'opaque',
+        self::NSAP_ADDRESS => 'nsap_address',
+        self::COUNTER_64   => 'counter64',
+        self::UNSIGNED_32  => 'unsigned32',
+    ];
+
+    // From SNMPv2-SMI:
+    // ipAddress-value => IpAddress
+    // counter-value => Counter32
+    // timeticks-value => TimeTicks
+    // arbitrary-value => Opaque
+    // -> nsap?
+    // big-counter-value => Counter64
+    // unsigned-integer-value => Unsigned32
+
+    const NAME_TO_TYPE_MAP = [
+        'ip_address'   => self::IP_ADDRESS,
+        'counter32'    => self::COUNTER_32,
+        'gauge32'      => self::GAUGE_32,
+        'time_ticks'   => self::TIME_TICKS,
+        'opaque'       => self::OPAQUE,
+        'nsap_address' => self::NSAP_ADDRESS,
+        'counter64'    => self::COUNTER_64,
+        'unsigned32'   => self::UNSIGNED_32,
+    ];
+
     protected $rawValue;
 
     protected $tag;
@@ -36,6 +67,8 @@ abstract class DataType
      * @return Element
      */
     abstract public function toASN1();
+
+    abstract public function toArray();
 
     public function getReadableValue()
     {

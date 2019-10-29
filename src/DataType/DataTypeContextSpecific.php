@@ -24,6 +24,14 @@ class DataTypeContextSpecific extends DataType
         $this->tag = $rawValue;
     }
 
+    public function toArray()
+    {
+        return [
+            'type'  => 'context_specific',
+            'value' => $this->rawValue,
+        ];
+    }
+
     public static function noSuchObject()
     {
         return new static(self::NO_SUCH_OBJECT);

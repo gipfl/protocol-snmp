@@ -20,6 +20,14 @@ class NullType extends DataType
         return '(null)';
     }
 
+    public function toArray()
+    {
+        return [
+            'type'  => 'null',
+            'value' => null,
+        ];
+    }
+
     public static function fromASN1(UnspecifiedType $element)
     {
         $element->asNull();

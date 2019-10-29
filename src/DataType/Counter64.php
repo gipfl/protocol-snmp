@@ -33,4 +33,12 @@ class Counter64 extends DataType
     {
         return new Integer($this->rawValue);
     }
+
+    public function toArray()
+    {
+        return [
+            'type'  => self::TYPE_TO_NAME_MAP[$this->getTag()],
+            'value' => $this->rawValue,
+        ];
+    }
 }

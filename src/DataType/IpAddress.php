@@ -26,6 +26,14 @@ class IpAddress extends DataType
         parent::__construct($binaryIp);
     }
 
+    public function toArray()
+    {
+        return [
+            'type'  => self::TYPE_TO_NAME_MAP[$this->tag],
+            'value' => $this->getReadableValue(),
+        ];
+    }
+
     public function getReadableValue()
     {
         return inet_ntop($this->rawValue);

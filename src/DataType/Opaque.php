@@ -21,7 +21,15 @@ class Opaque extends DataType
 
     public function getReadableValue()
     {
-        return '0x' . bin2hex($this->rawValue);
+        return '0x' . \bin2hex($this->rawValue);
+    }
+
+    public function toArray()
+    {
+        return [
+            'type'  => self::TYPE_TO_NAME_MAP[$this->getTag()],
+            'value' => $this->getReadableValue(),
+        ];
     }
 
     public static function fromASN1(UnspecifiedType $element)

@@ -20,6 +20,14 @@ class ObjectIdentifier extends DataType
         return new static($element->asObjectIdentifier()->oid());
     }
 
+    public function toArray()
+    {
+        return [
+            'type'  => 'oid',
+            'value' => $this->getReadableValue(),
+        ];
+    }
+
     public function toASN1()
     {
         return new AsnType($this->rawValue);

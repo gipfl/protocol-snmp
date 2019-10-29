@@ -31,6 +31,14 @@ class Unsigned32 extends DataType
         return new static((int) $int);
     }
 
+    public function toArray()
+    {
+        return [
+            'type'  => self::TYPE_TO_NAME_MAP[$this->tag],
+            'value' => $this->rawValue,
+        ];
+    }
+
     public static function fromASN1(UnspecifiedType $element)
     {
         return new static($element->asApplication());

@@ -27,6 +27,14 @@ class NsapAddress extends DataType
         parent::__construct($binary);
     }
 
+    public function toArray()
+    {
+        return [
+            'type'  => self::TYPE_TO_NAME_MAP[$this->tag],
+            'value' => $this->getReadableValue(),
+        ];
+    }
+
     public function getReadableValue()
     {
         return '0x' . bin2hex($this->rawValue);

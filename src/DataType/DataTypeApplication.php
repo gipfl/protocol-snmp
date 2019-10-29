@@ -10,15 +10,6 @@ use InvalidArgumentException;
 
 abstract class DataTypeApplication extends DataType
 {
-    const IP_ADDRESS = 0;
-    const COUNTER_32 = 1;
-    const GAUGE_32 = 2;
-    const TIME_TICKS = 3;
-    const OPAQUE = 4;
-    const NSAP_ADDRESS = 5;
-    const COUNTER_64 = 6;
-    const UNSIGNED_32 = 7;
-
     public static function fromASN1(UnspecifiedType $element)
     {
         switch ($element->tag()) {
