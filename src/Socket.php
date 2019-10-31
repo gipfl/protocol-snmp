@@ -90,32 +90,14 @@ class Socket implements EventEmitterInterface
         return $this->send($request, $target);
     }
 
-    public function walk($oid, $target, $community)
+    public function walk($oid, $target, $community, $limit = null, $nextOid = null)
     {
-        // TODO: Multiple OIDs
-        $results = [];
-        $deferred = new Deferred();
-        $error = function ($reason) use ($deferred) {
-            $deferred->reject($reason);
-        };
-        $handle = function ($result) use ($oid, $target, $community, $error, &$results, $deferred, &$handle) {
-            /** @var DataType $value */
-            foreach ($result as $newOid => $value) {
-                if (substr($newOid, 0, strlen($oid)) === $oid) {
-                    $results[$newOid] = $value;
-                    $this->getNext($newOid, $target, $community)
-                        ->then($handle)
-                        ->otherwise($error);
-                } else {
-                    $deferred->resolve($results);
-                }
-            }
-        };
-        $this->getNext($oid, $target, $community)
-            ->then($handle)
-            ->otherwise($error);
+        $walk = new Walk($this, $this->loop, $limit);
+        if ($nextOid !== null) {
+            $walk->setNextOid($nextOid);
+        }
 
-        return $deferred->promise();
+        return $walk->walk($oid, $target, $community);
     }
 
     public function walkBulk($oid, $ip, $community, $maxRepetitions = 10)
@@ -216,7 +198,7 @@ class Socket implements EventEmitterInterface
                 unset($this->pendingRequests[$id]);
                 unset($this->pendingRequestOids[$id]);
                 unset($this->timers[$id]);
-                $deferred->reject('Timeout');
+                $deferred->reject('Timeout'); // TODO: ErrorStatus, Exception?
             }
         });
     }
