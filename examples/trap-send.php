@@ -8,7 +8,7 @@ use gipfl\Protocol\Snmp\SnmpV2Message;
 use gipfl\Protocol\Snmp\TrapV2;
 use gipfl\Protocol\Snmp\VarBind;
 use gipfl\Protocol\Snmp\VarBinds;
-use React\EventLoop\Factory;
+use React\EventLoop\Loop;
 
 const TRAP_OID = '1.3.6.1.6.3.1.1.4.1';
 const SYS_UPTIME = '1.3.6.1.2.1.1.3';
@@ -20,14 +20,12 @@ const IF_OPER_STATUS  = '1.3.6.1.2.1.2.2.1.8';
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 $startTime = time();
-$loop = Factory::create();
 $socket = new Socket();
-$socket->run($loop);
 $community = 'public';
 
 $newTrap = function ($id) use ($community, $startTime) {
-    $uptime = time() - $startTime;
-    $varbinds = new VarBinds(
+    //$uptime = time() - $startTime;
+    $varBinds = new VarBinds(
         // new VarBind(SYS_UPTIME, $uptime),
         new VarBind(TRAP_OID, ObjectIdentifier::fromString(LINK_UP)),
         new VarBind(IF_DESCR, OctetString::fromString('eth0')),
@@ -35,7 +33,7 @@ $newTrap = function ($id) use ($community, $startTime) {
         new VarBind(IF_OPER_STATUS, Integer32::fromInteger(1))
     );
 
-    return new SnmpV2Message($community, new TrapV2($varbinds, $id));
+    return new SnmpV2Message($community, new TrapV2($varBinds, $id));
 };
 
 $i = 0;
@@ -43,14 +41,16 @@ $reported = 0;
 $debug = false;
 $target = '127.0.0.1';
 
-$send = function () use ($socket, & $newTrap, & $i, $loop, & $send, $target) {
-    for ($a = 0; $a < 30; $a ++) {
+$send = function () use ($socket, &$newTrap, &$i, &$send, $target) {
+    for ($a = 0; $a < 100; $a ++) {
         $i++;
         $trap = $newTrap($i);
-        $socket->sendTrap($trap, $target);
+        Loop::futureTick(function () use ($socket, $trap, $target) {
+            $socket->sendTrap($trap, $target);
+        });
     }
 };
-$showReport = function () use (& $i, & $reported, $debug) {
+$showReport = function () use (&$i, &$reported, $debug) {
     printf(
         "%s: sent %d Traps (total: %d)\n",
         date('H:i:s'),
@@ -60,15 +60,16 @@ $showReport = function () use (& $i, & $reported, $debug) {
 
     $reported = $i;
 };
-$term = function () use ($loop, & $showReport) {
+$term = function () use (&$showReport) {
     $showReport();
-    $loop->stop();
+    Loop::stop();
 };
-$loop->addSignal(2, $term);
-$loop->addPeriodicTimer(0.5, $send);
-$loop->futureTick($send);
-$loop->addPeriodicTimer(1, $showReport);
-$loop->addTimer(60, function () use ($loop) {
-    $loop->stop();
+Loop::addSignal(2, $term);
+Loop::addPeriodicTimer(0.05, $send);
+Loop::futureTick($send);
+Loop::addPeriodicTimer(1, $showReport);
+Loop::addTimer(15, function () use ($showReport) {
+    $showReport();
+    Loop::stop();
 });
-$loop->run();
+Loop::run();

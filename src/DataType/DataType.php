@@ -2,10 +2,10 @@
 
 namespace gipfl\Protocol\Snmp\DataType;
 
-use ASN1\Component\Identifier;
-use ASN1\Element;
-use ASN1\Type\UnspecifiedType;
 use InvalidArgumentException;
+use Sop\ASN1\Component\Identifier;
+use Sop\ASN1\Element;
+use Sop\ASN1\Type\UnspecifiedType;
 
 abstract class DataType
 {
@@ -49,38 +49,38 @@ abstract class DataType
         'unsigned32'   => self::UNSIGNED_32,
     ];
 
-    protected $rawValue;
+    protected mixed $rawValue;
 
-    protected $tag;
+    protected int $tag;
 
     protected function __construct($rawValue)
     {
         $this->rawValue = $rawValue;
     }
 
-    public function getTag()
+    public function getTag(): int
     {
         return $this->tag;
     }
 
+    abstract public function toASN1(): Element;
+
     /**
-     * @return Element
+     * @return array{'type': string, 'value': mixed}
      */
-    abstract public function toASN1();
+    abstract public function toArray(): array;
 
-    abstract public function toArray();
-
-    public function getReadableValue()
+    public function getReadableValue(): string
     {
         return $this->rawValue;
     }
 
-    public static function fromBinary($binary)
+    public static function fromBinary($binary): DataType|static
     {
         return self::fromASN1(UnspecifiedType::fromDER($binary));
     }
 
-    public static function fromASN1(UnspecifiedType $element)
+    public static function fromASN1(UnspecifiedType $element): DataType|static
     {
         $class = $element->typeClass();
 

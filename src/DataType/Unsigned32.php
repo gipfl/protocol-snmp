@@ -2,17 +2,17 @@
 
 namespace gipfl\Protocol\Snmp\DataType;
 
-use ASN1\Element;
-use ASN1\Type\Primitive\Integer;
-use ASN1\Type\Tagged\ApplicationType;
-use ASN1\Type\UnspecifiedType;
 use InvalidArgumentException;
+use Sop\ASN1\Element;
+use Sop\ASN1\Type\Primitive\Integer;
+use Sop\ASN1\Type\Tagged\ApplicationType;
+use Sop\ASN1\Type\UnspecifiedType;
 
 class Unsigned32 extends DataType
 {
-    protected $tag = self::UNSIGNED_32;
+    protected int $tag = self::UNSIGNED_32;
 
-    protected function __construct(ApplicationType $app)
+    final protected function __construct(ApplicationType $app)
     {
         $tag = $this->getTag();
         $value = $app->asImplicit(Element::TYPE_INTEGER, $tag)->asInteger()->intNumber();
@@ -25,13 +25,14 @@ class Unsigned32 extends DataType
         parent::__construct($value);
     }
 
-    public static function fromInteger($int)
-    {
-        new ApplicationType();
-        return new static((int) $int);
-    }
+    // TODO
+    // public static function fromInteger(int $int): static
+    // {
+    //     new ApplicationType();
+    //     return new static($int);
+    // }
 
-    public function toArray()
+    public function toArray(): array
     {
         return [
             'type'  => self::TYPE_TO_NAME_MAP[$this->tag],
@@ -39,12 +40,12 @@ class Unsigned32 extends DataType
         ];
     }
 
-    public static function fromASN1(UnspecifiedType $element)
+    public static function fromASN1(UnspecifiedType $element): static
     {
         return new static($element->asApplication());
     }
 
-    public function toASN1()
+    public function toASN1(): Element
     {
         return new Integer($this->rawValue);
     }

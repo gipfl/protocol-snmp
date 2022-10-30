@@ -2,25 +2,25 @@
 
 namespace gipfl\Protocol\Snmp\DataType;
 
-use ASN1\Element;
-use ASN1\Type\UnspecifiedType;
-use ASN1\Type\Primitive\ObjectIdentifier as AsnType;
+use Sop\ASN1\Element;
+use Sop\ASN1\Type\UnspecifiedType;
+use Sop\ASN1\Type\Primitive\ObjectIdentifier as AsnType;
 
 class ObjectIdentifier extends DataType
 {
-    protected $tag = Element::TYPE_OBJECT_IDENTIFIER;
+    protected int $tag = Element::TYPE_OBJECT_IDENTIFIER;
 
-    public static function fromString($oid)
+    public static function fromString($oid): ObjectIdentifier
     {
-        return new static($oid);
+        return new ObjectIdentifier($oid);
     }
 
-    public static function fromASN1(UnspecifiedType $element)
+    public static function fromASN1(UnspecifiedType $element): ObjectIdentifier
     {
-        return new static($element->asObjectIdentifier()->oid());
+        return new ObjectIdentifier($element->asObjectIdentifier()->oid());
     }
 
-    public function toArray()
+    public function toArray(): array
     {
         return [
             'type'  => 'oid',
@@ -28,7 +28,7 @@ class ObjectIdentifier extends DataType
         ];
     }
 
-    public function toASN1()
+    public function toASN1(): Element
     {
         return new AsnType($this->rawValue);
     }

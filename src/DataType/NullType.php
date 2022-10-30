@@ -2,25 +2,30 @@
 
 namespace gipfl\Protocol\Snmp\DataType;
 
-use ASN1\Element;
-use ASN1\Type\UnspecifiedType;
-use ASN1\Type\Primitive\NullType as AsnType;
+use Sop\ASN1\Element;
+use Sop\ASN1\Type\UnspecifiedType;
+use Sop\ASN1\Type\Primitive\NullType as AsnType;
 
 class NullType extends DataType
 {
-    protected $tag = Element::TYPE_NULL;
+    protected int $tag = Element::TYPE_NULL;
 
-    public static function create()
+    final public function __construct()
     {
-        return new static(null);
+        parent::__construct(null);
     }
 
-    public function getReadableValue()
+    public static function create(): static
+    {
+        return new static();
+    }
+
+    public function getReadableValue(): string
     {
         return '(null)';
     }
 
-    public function toArray()
+    public function toArray(): array
     {
         return [
             'type'  => 'null',
@@ -28,14 +33,14 @@ class NullType extends DataType
         ];
     }
 
-    public static function fromASN1(UnspecifiedType $element)
+    public static function fromASN1(UnspecifiedType $element): static
     {
         $element->asNull();
 
-        return new static(null);
+        return new static();
     }
 
-    public function toASN1()
+    public function toASN1(): Element
     {
         return new AsnType();
     }

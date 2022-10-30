@@ -2,6 +2,8 @@
 
 namespace gipfl\Protocol\Snmp;
 
+use InvalidArgumentException;
+
 class ErrorStatus
 {
     const NO_ERROR = 0;
@@ -47,23 +49,22 @@ class ErrorStatus
         self::INCONSISTENT_NAME    => 'inconsistentName',
     ];
 
-    protected $status;
-
-    public function __construct($status)
-    {
+    public function __construct(
+        protected int $status
+    ) {
         if (\array_key_exists($status, self::ERROR_TO_NAME_MAP)) {
-            $this->status = (int) $status;
+            $this->status = $status;
         } else {
-            throw new \RuntimeException("$status is not a valid ErrorStatus");
+            throw new InvalidArgumentException("$status is not a valid ErrorStatus");
         }
     }
 
-    public function getStatus()
+    public function getStatus(): int
     {
         return $this->status;
     }
 
-    public function getStatusName()
+    public function getStatusName(): string
     {
         return self::ERROR_TO_NAME_MAP[$this->status];
     }

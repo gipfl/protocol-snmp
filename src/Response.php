@@ -4,7 +4,7 @@ namespace gipfl\Protocol\Snmp;
 
 class Response extends Pdu
 {
-    public function getTag()
+    public function getTag(): int
     {
         return Pdu::RESPONSE;
     }

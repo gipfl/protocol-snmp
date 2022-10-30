@@ -2,8 +2,9 @@
 
 namespace gipfl\Protocol\Snmp\DataType;
 
-use ASN1\Element;
-use ASN1\Type\UnspecifiedType;
+use InvalidArgumentException;
+use Sop\ASN1\Element;
+use Sop\ASN1\Type\UnspecifiedType;
 
 abstract class DataTypeUniversal extends DataType
 {
@@ -16,7 +17,7 @@ abstract class DataTypeUniversal extends DataType
     const COUNTER_64 = 6;
     const UNSIGNED_32 = 7;
 
-    public static function fromASN1(UnspecifiedType $element)
+    public static function fromASN1(UnspecifiedType $element): DataType
     {
         $tag = $element->tag();
         switch ($tag) {
@@ -24,15 +25,15 @@ abstract class DataTypeUniversal extends DataType
                 return Integer32::fromASN1($element);
             case Element::TYPE_OCTET_STRING:
                 return OctetString::fromASN1($element);
-            case Element::TYPE_BIT_STRING:
-                return BitString::fromASN1($element);
+            // case Element::TYPE_BIT_STRING:
+            //     return BitString::fromASN1($element);
             case Element::TYPE_OBJECT_IDENTIFIER:
                 return ObjectIdentifier::fromASN1($element);
             case Element::TYPE_NULL:
-                return new NullType(null);
+                return new NullType();
             default:
                 $typeName = Element::tagToName($tag);
-                throw new \InvalidArgumentException("SNMP does not support ASN1 Universal type '$typeName'");
+                throw new InvalidArgumentException("SNMP does not support ASN1 Universal type '$typeName'");
         }
     }
 }

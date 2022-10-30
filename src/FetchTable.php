@@ -1,0 +1,128 @@
+<?php
+
+namespace gipfl\Protocol\Snmp;
+
+use gipfl\Protocol\Snmp\DataType\DataType;
+use React\EventLoop\Loop;
+use React\Promise\Deferred;
+use React\Promise\ExtendedPromiseInterface;
+use function ltrim;
+
+class FetchTable
+{
+    protected Deferred $deferred;
+    protected array $results;
+    protected array $pendingColumns;
+    protected array $columns;
+    protected string $target;
+    protected string $community;
+    protected string $baseOid;
+    protected string $currentPrefix;
+    protected string $currentColumn;
+
+    public function __construct(
+        protected Socket $socket,
+        protected ?int $limit = null
+    ) {
+    }
+
+    public function fetchTable($oid, array $columns, string $target, string $community): ExtendedPromiseInterface
+    {
+        $this->results = [];
+        $this->baseOid = $oid;
+        $this->target = $target;
+        $this->community = $community;
+        $this->columns = $this->pendingColumns = $columns;
+
+        $this->deferred = new Deferred();
+        Loop::futureTick(function () {
+            $this->next();
+        });
+
+        $promise = $this->deferred->promise();
+        assert($promise instanceof ExtendedPromiseInterface);
+
+        return $promise;
+    }
+
+    protected function next(): void
+    {
+        $column = array_shift($this->pendingColumns);
+        $this->currentColumn = $column;
+        $this->currentPrefix = $this->baseOid . '.' . $column;
+        $this->fetchColumn($column)
+            ->then(function ($result) {
+                $this->handleResult($result);
+            }, function ($e = null) {
+                var_dump($e);
+                $this->resolve();
+            });
+    }
+
+    protected function handleResult($result): void
+    {
+        /** @var DataType $value */
+        foreach ($result as $oid => $value) {
+            list($idx, $key) = $this->splitAtFirstDot($this->stripPrefix($oid));
+            // Dropping 1.
+            list($idx, $key) = $this->splitAtFirstDot($key);
+            // Now idx is the column. We don't care, as we already have it in currentColummn
+            $this->results[$key][$this->currentColumn] = $value->toArray();
+        }
+
+        if (empty($this->pendingColumns)) {
+            $this->resolve();
+        } else {
+            Loop::futureTick(function () {
+                $this->next();
+            });
+        }
+    }
+
+    protected function splitAtFirstDot(string $oid): array
+    {
+        $dot = strpos($oid, '.');
+        if ($dot === false) {
+            throw new \InvalidArgumentException("$oid has no dot");
+        }
+
+        return [
+            substr($oid, 0, $dot),
+            substr($oid, $dot + 1),
+        ];
+    }
+
+    protected function hasPrefix($oid, $prefix): bool
+    {
+        return str_starts_with($oid, $prefix);
+    }
+
+    protected function stripPrefix(string $oid, ?string $prefix = null): string
+    {
+        if ($prefix === null) {
+            $prefix = $this->baseOid;
+        }
+
+        if (str_starts_with($oid, $prefix)) {
+            $oid = \substr($oid, \strlen($prefix));
+        }
+
+        return ltrim($oid, '.');
+    }
+
+    protected function fetchIndex(): ExtendedPromiseInterface
+    {
+        return $this->fetchColumn('1.1');
+    }
+
+    protected function fetchColumn(string $column): ExtendedPromiseInterface
+    {
+        $walk = new Walk($this->socket);
+        return $walk->walk($this->baseOid . '.' . $column, $this->target, $this->community);
+    }
+
+    protected function resolve(): void
+    {
+        $this->deferred->resolve($this->results);
+    }
+}

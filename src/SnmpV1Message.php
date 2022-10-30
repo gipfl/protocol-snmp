@@ -2,61 +2,39 @@
 
 namespace gipfl\Protocol\Snmp;
 
-use ASN1\Type\Constructed\Sequence;
-use ASN1\Type\Primitive\Integer;
-use ASN1\Type\Primitive\OctetString;
+use Sop\ASN1\Type\Constructed\Sequence;
+use Sop\ASN1\Type\Primitive\Integer;
+use Sop\ASN1\Type\Primitive\OctetString;
 
 class SnmpV1Message extends SnmpMessage
 {
-    protected $version = self::SNMP_V1;
-
-    protected $community;
+    protected int $version = self::SNMP_V1;
 
     // unused
     protected $rawPdu;
 
-    /** @var Pdu */
-    protected $pdu;
-
-    public function __construct($community, Pdu $pdu)
-    {
-        $this->setCommunity($community);
-        $this->pdu = $pdu;
+    final public function __construct(
+        #[\SensitiveParameter]
+        public readonly string $community,
+        public Pdu $pdu
+    ) {
     }
 
-    public function getCommunity()
-    {
-        return $this->community;
-    }
-
-    public function setCommunity($community)
-    {
-        $this->community = $community;
-
-        return $this;
-    }
-
-    /**
-     * @return Sequence
-     */
-    public function toASN1()
+    public function toASN1(): Sequence
     {
         return new Sequence(
             new Integer($this->version),
-            new OctetString($this->getCommunity()),
-            $this->getPdu()->toASN1()
+            new OctetString($this->community),
+            $this->pdu->toASN1()
         );
     }
 
-    /**
-     * @return Pdu
-     */
-    public function getPdu()
+    public function getPdu(): Pdu
     {
         return $this->pdu;
     }
 
-    public static function fromASN1(Sequence $sequence)
+    public static function fromASN1(Sequence $sequence): static
     {
         return new static(
             $sequence->at(1)->asOctetString()->string(),

@@ -2,9 +2,9 @@
 
 namespace gipfl\Protocol\Snmp;
 
-use ASN1\Type\Constructed\Sequence;
-use ASN1\Type\Primitive\Integer;
-use ASN1\Type\Tagged\ImplicitlyTaggedType;
+use Sop\ASN1\Type\Constructed\Sequence;
+use Sop\ASN1\Type\Primitive\Integer;
+use Sop\ASN1\Type\Tagged\ImplicitlyTaggedType;
 
 /**
  * GetBulkRequest
@@ -13,25 +13,25 @@ use ASN1\Type\Tagged\ImplicitlyTaggedType;
  */
 class GetBulkRequest extends Pdu
 {
-    protected $wantsResponse = true;
+    protected bool $wantsResponse = true;
 
-    protected $nonRepeaters = 0;
+    protected int $nonRepeaters = 0;
 
-    protected $maxRepetitions;
+    protected int $maxRepetitions;
 
-    public function __construct(VarBinds $varBinds, $requestId = null, $maxRepetitions = 10, $nonRepeaters = 0)
+    public function __construct(VarBinds $varBinds, ?int $requestId = null, int $maxRepetitions = 10, $nonRepeaters = 0)
     {
         parent::__construct($varBinds, $requestId);
         $this->maxRepetitions = $maxRepetitions;
         $this->nonRepeaters = $nonRepeaters;
     }
 
-    public function getTag()
+    public function getTag(): int
     {
         return Pdu::GET_BULK_REQUEST;
     }
 
-    public function toASN1()
+    public function toASN1(): ImplicitlyTaggedType
     {
         return new ImplicitlyTaggedType($this->getTag(), new Sequence(
             new Integer($this->requestId),

@@ -2,9 +2,11 @@
 
 namespace gipfl\Protocol\Snmp\DataType;
 
-use ASN1\Type\Primitive\NullType;
-use ASN1\Type\Tagged\ImplicitlyTaggedType;
-use ASN1\Type\UnspecifiedType;
+use InvalidArgumentException;
+use Sop\ASN1\Element;
+use Sop\ASN1\Type\Primitive\NullType;
+use Sop\ASN1\Type\Tagged\ImplicitlyTaggedType;
+use Sop\ASN1\Type\UnspecifiedType;
 
 class DataTypeContextSpecific extends DataType
 {
@@ -12,19 +14,19 @@ class DataTypeContextSpecific extends DataType
     const NO_SUCH_INSTANCE = 1;
     const END_OF_MIB_VIEW = 2;
 
-    protected static $errorMessages = [
+    protected static array $errorMessages = [
         self::NO_SUCH_OBJECT   => 'No such object',
         self::NO_SUCH_INSTANCE => 'No such instance',
         self::END_OF_MIB_VIEW  => 'End of MIB view',
     ];
 
-    protected function __construct($rawValue)
+    final protected function __construct($rawValue)
     {
         parent::__construct(null);
         $this->tag = $rawValue;
     }
 
-    public function toArray()
+    public function toArray(): array
     {
         return [
             'type'  => 'context_specific',
@@ -32,34 +34,34 @@ class DataTypeContextSpecific extends DataType
         ];
     }
 
-    public static function noSuchObject()
+    public static function noSuchObject(): static
     {
         return new static(self::NO_SUCH_OBJECT);
     }
 
-    public static function noSuchInstance()
+    public static function noSuchInstance(): static
     {
         return new static(self::NO_SUCH_INSTANCE);
     }
 
-    public static function endOfMibView()
+    public static function endOfMibView(): static
     {
         return new static(self::END_OF_MIB_VIEW);
     }
 
-    public static function fromASN1(UnspecifiedType $element)
+    public static function fromASN1(UnspecifiedType $element): static
     {
         $tag = $element->tag();
         if (isset(static::$errorMessages[$tag])) {
             return new static($tag);
         } else {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 "Unknown context specific data type, tag=$tag"
             );
         }
     }
 
-    public function toASN1()
+    public function toASN1(): Element
     {
         return new ImplicitlyTaggedType($this->getTag(), new NullType());
     }

@@ -2,17 +2,17 @@
 
 namespace gipfl\Protocol\Snmp\DataType;
 
-use ASN1\Element;
-use ASN1\Type\Primitive\Integer;
-use ASN1\Type\Tagged\ApplicationType;
-use ASN1\Type\UnspecifiedType;
 use InvalidArgumentException;
+use Sop\ASN1\Element;
+use Sop\ASN1\Type\Primitive\Integer;
+use Sop\ASN1\Type\Tagged\ApplicationType;
+use Sop\ASN1\Type\UnspecifiedType;
 
 class Counter64 extends DataType
 {
-    protected $tag = self::COUNTER_64;
+    protected int $tag = self::COUNTER_64;
 
-    protected function __construct(ApplicationType $app)
+    final protected function __construct(ApplicationType $app)
     {
         $tag = $this->getTag();
         $value = $app->asImplicit(Element::TYPE_INTEGER, $tag)->asInteger()->intNumber();
@@ -24,17 +24,17 @@ class Counter64 extends DataType
         parent::__construct($value);
     }
 
-    public static function fromASN1(UnspecifiedType $element)
+    public static function fromASN1(UnspecifiedType $element): DataType|static
     {
         return new static($element->asApplication());
     }
 
-    public function toASN1()
+    public function toASN1(): Element
     {
         return new Integer($this->rawValue);
     }
 
-    public function toArray()
+    public function toArray(): array
     {
         return [
             'type'  => self::TYPE_TO_NAME_MAP[$this->getTag()],

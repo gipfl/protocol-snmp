@@ -13,3 +13,14 @@ Please see the `examples` directory for some usage examples:
 * `trap-recieve.php` is a simple Trap receiver
 * `trap-send.php` sends 60 test-traps a second to test the receiver
 
+Tuning
+------
+
+Network Stack buffer sizes might be increased for high-traffic setups:
+
+```
+$ sudo sysctl -w net.core.rmem_max=26214400
+net.core.rmem_max = 26214400
+$ sudo sysctl -w net.core.rmem_default=26214400
+net.core.rmem_default = 26214400
+```

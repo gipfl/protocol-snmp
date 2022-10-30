@@ -2,7 +2,7 @@
 
 namespace gipfl\Protocol\Snmp;
 
-use ASN1\Type\UnspecifiedType;
+use Sop\ASN1\Type\UnspecifiedType;
 
 trait SequenceTrait
 {

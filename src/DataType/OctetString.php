@@ -2,35 +2,37 @@
 
 namespace gipfl\Protocol\Snmp\DataType;
 
-use ASN1\Element;
-use ASN1\Type\UnspecifiedType;
-use ASN1\Type\Primitive\OctetString as AsnType;
+use Sop\ASN1\Element;
+use Sop\ASN1\Type\UnspecifiedType;
+use Sop\ASN1\Type\Primitive\OctetString as AsnType;
+use function bin2hex;
 
 class OctetString extends DataType
 {
-    protected $tag = Element::TYPE_OCTET_STRING;
+    protected int $tag = Element::TYPE_OCTET_STRING;
 
-    public static function fromString($string)
+    public static function fromString($string): DataType|static
     {
-        return new static($string);
+        return new OctetString($string);
     }
 
-    public static function fromASN1(UnspecifiedType $element)
+    public static function fromASN1(UnspecifiedType $element): DataType|static
     {
-        return new static($element->asOctetString()->string());
+        return new OctetString($element->asOctetString()->string());
     }
 
-    public function toArray()
+    public function toArray(): array
     {
         return [
             'type'  => 'octet_string',
-            'value' => $this->isUtf8Safe() ? $this->rawValue : '0x' . \bin2hex($this->rawValue),
+            'value' => $this->isUtf8Safe() ? $this->rawValue : '0x' . bin2hex($this->rawValue),
         ];
     }
 
-    protected function isUtf8Safe()
+    protected function isUtf8Safe(): bool
     {
-        if (\substr($this->rawValue, 0, 2) === '0x') {
+        // TODO: this is not correct, we would prepend 0x with 0x
+        if (str_starts_with($this->rawValue, '0x')) {
             return false;
         }
 
@@ -38,7 +40,7 @@ class OctetString extends DataType
         return false;
     }
 
-    public function toASN1()
+    public function toASN1(): Element
     {
         return new AsnType($this->rawValue);
     }

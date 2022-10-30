@@ -4,9 +4,9 @@ namespace gipfl\Protocol\Snmp;
 
 class GetNextRequest extends Pdu
 {
-    protected $wantsResponse = true;
+    protected bool $wantsResponse = true;
 
-    public function getTag()
+    public function getTag(): int
     {
         return Pdu::GET_NEXT_REQUEST;
     }

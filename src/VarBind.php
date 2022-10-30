@@ -2,52 +2,27 @@
 
 namespace gipfl\Protocol\Snmp;
 
-use ASN1\Type\Constructed\Sequence;
-use ASN1\Type\Primitive\ObjectIdentifier;
 use gipfl\Protocol\Snmp\DataType\DataType;
 use gipfl\Protocol\Snmp\DataType\NullType;
+use Sop\ASN1\Type\Constructed\Sequence;
+use Sop\ASN1\Type\Primitive\ObjectIdentifier;
 
 class VarBind
 {
     use SequenceTrait;
 
-    protected $oid;
-
-    /** @var DataType */
-    protected $value;
-
-    public function __construct($oid, DataType $value = null)
-    {
-        $this->oid = $oid;
-        if ($value === null) {
-            $this->value = NullType::create();
-        } else {
-            $this->value = $value;
-        }
+    public function __construct(
+        public readonly string $oid,
+        public readonly DataType $value = new NullType()
+    ) {
     }
 
-    public function getOid()
-    {
-        return $this->oid;
-    }
-
-    /**
-     * @return DataType
-     */
-    public function getValue()
-    {
-        return $this->value;
-    }
-
-    /**
-     * @return Sequence
-     */
-    public function toASN1()
+    public function toASN1(): Sequence
     {
         return new Sequence(new ObjectIdentifier($this->oid), $this->value->toASN1());
     }
 
-    public static function fromASN1(Sequence $varBind)
+    public static function fromASN1(Sequence $varBind): VarBind
     {
         // $varBind->count() === 2
 

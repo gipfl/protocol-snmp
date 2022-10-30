@@ -3,22 +3,22 @@
 namespace gipfl\Protocol\Snmp;
 
 use ArrayIterator;
-use ASN1\Type\Constructed\Sequence;
-use ASN1\Type\UnspecifiedType;
+use Sop\ASN1\Type\Constructed\Sequence;
+use Sop\ASN1\Type\UnspecifiedType;
 
 class VarBinds
 {
     use SequenceTrait;
 
     /** @var VarBind[] */
-    protected $varBinds;
+    protected array $varBinds;
 
-    public function __construct(VarBind ...$varBinds)
+    final public function __construct(VarBind ...$varBinds)
     {
         $this->varBinds = $varBinds;
     }
 
-    public static function fromASN1(Sequence $varBinds)
+    public static function fromASN1(Sequence $varBinds): static
     {
         $bindings = [];
         /** @var UnspecifiedType $varBind */
@@ -37,15 +37,12 @@ class VarBinds
         return new static(...$bindings);
     }
 
-    public function iterate()
+    public function iterate(): ArrayIterator
     {
         return new ArrayIterator($this->varBinds);
     }
 
-    /**
-     * @return Sequence
-     */
-    public function toASN1()
+    public function toASN1(): Sequence
     {
         $result = [];
         foreach ($this->varBinds as $varBind) {

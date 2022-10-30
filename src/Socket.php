@@ -4,95 +4,97 @@ namespace gipfl\Protocol\Snmp;
 
 use Evenement\EventEmitterInterface;
 use Evenement\EventEmitterTrait;
+use Exception;
 use gipfl\Protocol\Snmp\DataType\DataType;
 use gipfl\Protocol\Snmp\DataType\DataTypeContextSpecific;
-use React\EventLoop\LoopInterface;
-use React\Datagram\Factory as UdpFactory;
-use React\Datagram\Socket as UdpSocket;
+use React\EventLoop\Loop;
 use React\Promise\Deferred;
-use React\Promise\FulfilledPromise;
+use React\Promise\ExtendedPromiseInterface;
+use React\Datagram\Socket as DatagramSocket;
+use Throwable;
+use function React\Promise\resolve;
 
-class Socket implements EventEmitterInterface
+class Socket implements EventEmitterInterface, RequestIdConsumer
 {
     use EventEmitterTrait;
 
-    /** @var LoopInterface */
-    protected $loop;
-
-    protected $ip;
-
-    protected $port;
-
-    /** @var UdpFactory */
-    protected $factory;
-
-    /** @var UdpSocket */
-    protected $socket;
-
     /** @var Deferred[] */
-    protected $pendingRequests = [];
+    protected array $pendingRequests = [];
+    protected array $pendingRequestOidLists = [];
+    protected array $timers = [];
+    protected ?DatagramSocket $socket = null;
+    protected SimpleRequestIdGenerator $idGenerator;
 
-    /** @var array */
-    protected $pendingRequestOids = [];
-
-    protected $timers = [];
-
-    public function __construct($ip = '0.0.0.0', $port = 1161)
-    {
-        $this->ip = $ip;
-        $this->port = $port;
+    public function __construct(
+        public readonly SocketAddress $socketAddress = new SocketAddress('0.0.0.0'),
+    ) {
+        $this->idGenerator = new SimpleRequestIdGenerator();
+        $this->idGenerator->registerConsumer($this);
     }
 
-    public function hasPendingRequests()
+    public function hasPendingRequests(): bool
     {
         return ! empty($this->pendingRequests);
     }
 
-    public function run(LoopInterface $loop)
+    public function listen()
     {
-        $this->loop = $loop;
-        // $resolver --> React\Dns\Resolver\Resolver
-        $this->factory = new UdpFactory($this->loop/*, $resolver */);
-
-        return $this->factory->createServer(sprintf('%s:%d', $this->ip, $this->port))
-            ->then(function (UdpSocket $socket) {
-                $this->socket = $socket;
-                $socket->on('message', function ($data, $peer, UdpSocket $socket) {
-                    $this->handleData($data, $peer, $socket);
-                });
-            });
+        $this->socket();
     }
 
-    public function get($oids, $target, $community)
+    public function scan(array $oidList, array $targets, #[\SensitiveParameter] string $community)
     {
-        $id = $this->nextRequestId();
-        $varBinds = $this->prepareAndScheduleOids($id, $oids);
+    }
+
+    public function get(
+        array $oidList,
+        string $target,
+        #[\SensitiveParameter] string $community
+    ): ExtendedPromiseInterface {
+        $id = $this->idGenerator->getNextId();
+        $varBinds = $this->prepareAndScheduleOidList($id, $oidList);
         $request = new SnmpV2Message($community, new GetRequest($varBinds, $id));
 
         return $this->send($request, $target);
     }
 
-    public function getNext($oid, $ip, $community)
-    {
-        $id = $this->nextRequestId();
-        $varBinds = $this->prepareAndScheduleOids($id, [$oid => null]);
+    public function getNext(
+        array $oidList,
+        string $ip,
+        #[\SensitiveParameter] string $community
+    ): ExtendedPromiseInterface {
+        $requestedOidList = [];
+        foreach ($oidList as $oid) {
+            $requestedOidList[$oid] = null;
+        }
+        $id = $this->idGenerator->getNextId();
+        $varBinds = $this->prepareAndScheduleOidList($id, $requestedOidList);
         $request = new SnmpV2Message($community, new GetNextRequest($varBinds, $id));
 
         return $this->send($request, $ip);
     }
 
-    public function getBulk($oid, $target, $community, $maxRepetitions = 10)
-    {
-        $id = $this->nextRequestId();
-        $varBinds = $this->prepareAndScheduleOids($id, [$oid => null]);
+    public function getBulk(
+        string $oid,
+        string $target,
+        #[\SensitiveParameter] string $community,
+        $maxRepetitions = 10
+    ): ExtendedPromiseInterface {
+        $id = $this->idGenerator->getNextId();
+        $varBinds = $this->prepareAndScheduleOidList($id, [$oid => null]);
         $request = new SnmpV2Message($community, new GetBulkRequest($varBinds, $id, $maxRepetitions));
 
         return $this->send($request, $target);
     }
 
-    public function walk($oid, $target, $community, $limit = null, $nextOid = null)
-    {
-        $walk = new Walk($this, $this->loop, $limit);
+    public function walk(
+        string $oid,
+        string $target,
+        #[\SensitiveParameter] string $community,
+        ?int $limit = null,
+        ?string $nextOid = null
+    ) {
+        $walk = new Walk($this, $limit);
         if ($nextOid !== null) {
             $walk->setNextOid($nextOid);
         }
@@ -100,8 +102,18 @@ class Socket implements EventEmitterInterface
         return $walk->walk($oid, $target, $community);
     }
 
-    public function walkBulk($oid, $ip, $community, $maxRepetitions = 10)
+    public function table($oid, $columns, $target, $community): ExtendedPromiseInterface
     {
+        $fetchTable = new FetchTable($this);
+        return $fetchTable->fetchTable($oid, $columns, $target, $community);
+    }
+
+    public function walkBulk(
+        string $oid,
+        string $ip,
+        string $community,
+        int    $maxRepetitions = 10
+    ): ExtendedPromiseInterface {
         // TODO: Multiple OIDs
         $results = [];
         $deferred = new Deferred();
@@ -127,7 +139,7 @@ class Socket implements EventEmitterInterface
 
             /** @var DataType $value */
             foreach ($result as $newOid => $value) {
-                if (substr($newOid, 0, strlen($oid)) === $oid) {
+                if (str_starts_with($newOid, $oid)) {
                     $results[$newOid] = $value;
                 } else {
                     $deferred->resolve($results);
@@ -137,26 +149,28 @@ class Socket implements EventEmitterInterface
             }
 
             $this->getBulk($newOid, $ip, $community, $maxRepetitions)
-                ->then($handle)
-                ->otherwise($error);
+                ->then($handle, $error);
         };
         $this->getBulk($oid, $ip, $community, $maxRepetitions)
-            ->then($handle)
-            ->otherwise($error);
+            ->then($handle, $error);
 
-        return $deferred->promise();
+        $promise = $deferred->promise();
+        assert($promise instanceof ExtendedPromiseInterface);
+
+        return $promise;
     }
 
-    public function sendTrap(SnmpMessage $trap, $destination)
+    public function sendTrap(SnmpMessage $trap, SocketAddress|string $destination)
     {
-        if (strpos($destination, ':') === false) {
-            $destination .= ':162';
-        }
-
-        return $this->send($trap, $destination);
+        $this->send($trap, SocketAddress::detect($destination, 162));
     }
 
-    protected function send(SnmpMessage $message, $destination)
+    public function hasId(int $id): bool
+    {
+        return isset($this->pendingRequests[$id]);
+    }
+
+    protected function send(SnmpMessage $message, SocketAddress|string $destination): ExtendedPromiseInterface
     {
         $pdu = $message->getPdu();
         $wantsResponse = $pdu->wantsResponse();
@@ -167,51 +181,79 @@ class Socket implements EventEmitterInterface
             $this->scheduleTimeout($id);
             $result = $deferred->promise();
         } else {
-            $result = new FulfilledPromise();
+            $result = resolve();
         }
+        assert($result instanceof ExtendedPromiseInterface);
 
-        if (strpos($destination, ':') === false) {
-            $destination .= ':161';
-        }
-        $this->socket->send($message->toBinary(), $destination);
+        $this->socket()->send($message->toBinary(), SocketAddress::detect($destination, 161));
 
         return $result;
     }
 
-    protected function prepareAndScheduleOids($id, $oids)
+    protected function prepareAndScheduleOidList(int $id, array $oidList): VarBinds
     {
-        $this->pendingRequestOids[$id] = $oids;
+        $this->pendingRequestOidLists[$id] = $oidList;
         $binds = [];
-        foreach ($oids as $oid => $target) {
+        foreach ($oidList as $oid => $target) {
             $binds[] = new VarBind($oid);
         }
-        $varBinds = new VarBinds(...$binds);
 
-        return $varBinds;
+        return new VarBinds(...$binds);
     }
 
-    protected function scheduleTimeout($id, $timeout = 5)
+    protected function scheduleTimeout(int $id, int $timeout = 30)
     {
-        $this->timers[$id] = $this->loop->addTimer($timeout, function () use ($id) {
+        $this->timers[$id] = Loop::addTimer($timeout, function () use ($id) {
             if (isset($this->pendingRequests[$id])) {
                 $deferred = $this->pendingRequests[$id];
                 unset($this->pendingRequests[$id]);
-                unset($this->pendingRequestOids[$id]);
+                unset($this->pendingRequestOidLists[$id]);
                 unset($this->timers[$id]);
                 $deferred->reject('Timeout'); // TODO: ErrorStatus, Exception?
             }
         });
     }
 
-    protected function clearPendingRequest($id)
+    protected function clearPendingRequest(int $id)
     {
         unset($this->pendingRequests[$id]);
-        unset($this->pendingRequestOids[$id]);
-        $this->loop->cancelTimer($this->timers[$id]);
+        unset($this->pendingRequestOidLists[$id]);
+        Loop::cancelTimer($this->timers[$id]);
         unset($this->timers[$id]);
     }
 
-    protected function handleData($data, $peer, UdpSocket $socket)
+    protected function rejectAllPendingRequests(Throwable $error)
+    {
+        foreach ($this->listPendingIds() as $id) {
+            $this->rejectPendingRequest($id, $error);
+        }
+    }
+
+    protected function rejectPendingRequest(int $id, Throwable $error)
+    {
+        if (! $error instanceof Exception) {
+            $error = new \RuntimeException($error->getMessage(), $error->getCode(), $error);
+        }
+        $deferred = $this->pendingRequests[$id];
+
+        unset($this->pendingRequests[$id]);
+        unset($this->pendingRequestOidLists[$id]);
+        Loop::cancelTimer($this->timers[$id]);
+        unset($this->timers[$id]);
+        Loop::futureTick(function () use ($deferred, $error) {
+            $deferred->reject($error);
+        });
+    }
+
+    /**
+     * @return int[]
+     */
+    protected function listPendingIds(): array
+    {
+        return array_keys($this->pendingRequests);
+    }
+
+    protected function handleData(string $data, SocketAddress $peer, DatagramSocket $socket)
     {
         // TODO: Logger::debug("Got message from $peer");
         $message = SnmpMessage::fromBinary($data);
@@ -224,24 +266,24 @@ class Socket implements EventEmitterInterface
         $requestId = $pdu->getRequestId();
         if (isset($this->pendingRequests[$requestId])) {
             $deferred = $this->pendingRequests[$requestId];
-            $oids = $this->pendingRequestOids[$requestId];
+            $oidList = $this->pendingRequestOidLists[$requestId];
             $this->clearPendingRequest($requestId);
             if ($pdu->isError()) {
                 // TODO: get errorStatus/errorIndex
-                $deferred->reject('ERROR (TODO: get errorStatus/errorIndex)');
+                $deferred->reject(new Exception('ERROR (TODO: get errorStatus/errorIndex)'));
             } else {
                 $result = [];
                 /** @var VarBind $varBind */
                 foreach ($pdu->getVarBinds()->iterate() as $varBind) {
-                    $oid = $varBind->getOid();
-                    if (isset($oids[$oid])) {
-                        $result[$oids[$oid]] = $varBind->getValue();
-                        unset($oids[$oid]);
+                    $oid = $varBind->oid;
+                    if (isset($oidList[$oid])) {
+                        $result[$oidList[$oid]] = $varBind->value;
+                        unset($oidList[$oid]);
                     } else {
-                        $result[$oid] = $varBind->getValue();
+                        $result[$oid] = $varBind->value;
                     }
                 }
-                foreach ($oids as $missing) {
+                foreach ($oidList as $missing) {
                     if ($missing !== null) {
                         $result[$missing] = DataTypeContextSpecific::noSuchObject();
                     }
@@ -253,17 +295,30 @@ class Socket implements EventEmitterInterface
         }
     }
 
-    protected function nextRequestId()
+    protected function socket(): DatagramSocket
     {
-        $id = null;
-
-        while (true) {
-            $id = rand(1, 1000000000);
-            if (! isset($this->pendingRequests[$id])) {
-                break;
-            }
+        if ($this->socket === null) {
+            $this->socket = UdpSocketFactory::prepareUdpSocket($this->socketAddress);
+            $this->registerUdpSocketHandlers();
         }
 
-        return $id;
+        return $this->socket;
+    }
+
+    protected function registerUdpSocketHandlers()
+    {
+        $socket = $this->socket;
+        $socket->on('message', function ($data, $peer, DatagramSocket $socket) {
+            $this->handleData($data, SocketAddress::parse($peer), $socket);
+        });
+        $socket->on('error', function (Throwable $error) {
+            $this->rejectAllPendingRequests($error);
+            $this->socket->close();
+            $this->socket = null;
+        });
+        $socket->on('close', function () {
+            $this->socket = null;
+            $this->rejectAllPendingRequests(new Exception('Socket has been closed'));
+        });
     }
 }

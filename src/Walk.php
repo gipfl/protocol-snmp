@@ -4,50 +4,37 @@ namespace gipfl\Protocol\Snmp;
 
 use gipfl\Protocol\Snmp\DataType\DataType;
 use gipfl\Protocol\Snmp\DataType\DataTypeContextSpecific;
-use React\EventLoop\LoopInterface;
+use React\EventLoop\Loop;
 use React\Promise\Deferred;
+use React\Promise\ExtendedPromiseInterface;
 
 class Walk
 {
-    protected $socket;
+    protected Deferred $deferred;
+    protected string $target;
+    protected string $community;
+    protected array $results;
+    protected string $baseOid;
+    protected ?string $nextOid = null;
+    protected bool $getBulk = true; // TODO: parameterize, false for v1
 
-    protected $target;
-
-    protected $community;
-
-    protected $results = [];
-
-    /** @var Deferred */
-    protected $deferred;
-
-    /** @var LoopInterface */
-    protected $loop;
-
-    protected $baseOid;
-
-    protected $nextOid;
-
-    protected $limit;
-
-    /** @var bool TODO: parameterize, false for v1 */
-    protected $getBulk = true;
-
-    public function __construct(Socket $socket, LoopInterface $loop, $limit = null)
-    {
-        $this->socket = $socket;
-        $this->loop = $loop;
-        $this->limit = $limit;
+    public function __construct(
+        protected readonly Socket $socket,
+        protected ?int $limit = null,
+    ) {
     }
 
-    public function setNextOid($nextOid)
+    public function setNextOid(string $nextOid): void
     {
         $this->nextOid = $nextOid;
-
-        return $this;
     }
 
-    public function walk($oid, $target, $community)
-    {
+    public function walk(
+        string $oid,
+        string $target,
+        #[\SensitiveParameter] string $community
+    ): ExtendedPromiseInterface {
+        $this->results = [];
         $this->baseOid = $oid;
         if ($this->nextOid === null) {
             $this->nextOid = $oid;
@@ -56,15 +43,18 @@ class Walk
         $this->community = $community;
         // TODO: Multiple OIDs
         $this->deferred = new Deferred();
-        $this->loop->futureTick(function () {
+        Loop::futureTick(function () {
             $this->next();
         });
 
         // TODO: check whether cancel() really stops
-        return $this->deferred->promise();
+        $promise = $this->deferred->promise();
+        assert($promise instanceof ExtendedPromiseInterface);
+
+        return $promise;
     }
 
-    protected function next()
+    protected function next(): void
     {
         // TODO: Align max-repetitions with limit, try to not fetch more than required,
         //       and to avoid useless queries. Like: if we fetch 21 per default (for the
@@ -85,32 +75,32 @@ class Walk
             );
         } else {
             $promise = $this->socket->getNext(
-                $this->nextOid,
+                [$this->nextOid],
                 $this->target,
                 $this->community
             );
         }
-        // TODO: evtl change to:
+        // TODO: might be changed to:
         // $promise->then([$this, 'handleResult'], [$this, 'resolve']);
         $promise->then(function ($result) {
             $this->handleResult($result);
-        })->otherwise(function ($e = null) {
+        }, function ($e = null) {
             var_dump($e);
             $this->resolve();
         });
     }
 
-    protected function resolve()
+    protected function resolve(): void
     {
         $this->deferred->resolve($this->results);
     }
 
-    protected function handleResult($result)
+    protected function handleResult($result): void
     {
-        /** @var DataType $value */
         $oid = $this->baseOid;
+        /** @var DataType $value */
         foreach ($result as $newOid => $value) {
-            if (! $this->hasPrefix($newOid, $this->baseOid) // Other prefix
+            if (! str_starts_with($newOid, $this->baseOid) // Other prefix
                 || ($value instanceof DataTypeContextSpecific
                 && $value->getTag() === DataTypeContextSpecific::END_OF_MIB_VIEW) // End Of MIB
             ) {
@@ -132,22 +122,11 @@ class Walk
         }
 
         if ($this->limit === null || count($this->results) < $this->limit) {
-            $this->loop->futureTick(function () {
+            Loop::futureTick(function () {
                 $this->next();
             });
         } else {
             $this->resolve();
-            return;
         }
-    }
-
-    protected function hasPrefix($oid, $prefix)
-    {
-        return \substr($oid, 0, \strlen($prefix)) === $prefix;
-    }
-
-    public function __destruct()
-    {
-        $this->socket = null;
     }
 }

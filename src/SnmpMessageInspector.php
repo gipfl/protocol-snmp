@@ -13,15 +13,15 @@ class SnmpMessageInspector
     {
         $result = sprintf("Version: %s\n", $message->getVersion());
         if ($message instanceof SnmpV1Message) {
-            $result .= sprintf("Community: %s\n", $message->getCommunity());
+            $result .= sprintf("Community: %s\n", $message->community);
         }
 
         /** @var VarBind $varBind */
         foreach ($message->getPdu()->getVarBinds()->iterate() as $varBind) {
             $result .= sprintf(
                 "%s: %s\n",
-                $varBind->getOid(),
-                $varBind->getValue()->getReadableValue()
+                $varBind->oid,
+                $varBind->value->getReadableValue()
             );
         }
 

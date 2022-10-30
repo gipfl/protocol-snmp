@@ -2,17 +2,17 @@
 
 namespace gipfl\Protocol\Snmp\DataType;
 
-use ASN1\Element;
-use ASN1\Type\Primitive\OctetString as AsnType;
-use ASN1\Type\Tagged\ApplicationType;
-use ASN1\Type\UnspecifiedType;
 use InvalidArgumentException;
+use Sop\ASN1\Element;
+use Sop\ASN1\Type\Primitive\OctetString as AsnType;
+use Sop\ASN1\Type\Tagged\ApplicationType;
+use Sop\ASN1\Type\UnspecifiedType;
 
 class NsapAddress extends DataType
 {
-    protected $tag = self::NSAP_ADDRESS;
+    protected int $tag = self::NSAP_ADDRESS;
 
-    protected function __construct(ApplicationType $app)
+    final protected function __construct(ApplicationType $app)
     {
         $tag = $this->getTag();
         $binary = $app->asImplicit(Element::TYPE_OCTET_STRING, $tag)->asOctetString()->string();
@@ -27,7 +27,7 @@ class NsapAddress extends DataType
         parent::__construct($binary);
     }
 
-    public function toArray()
+    public function toArray(): array
     {
         return [
             'type'  => self::TYPE_TO_NAME_MAP[$this->tag],
@@ -35,17 +35,17 @@ class NsapAddress extends DataType
         ];
     }
 
-    public function getReadableValue()
+    public function getReadableValue(): string
     {
         return '0x' . bin2hex($this->rawValue);
     }
 
-    public static function fromASN1(UnspecifiedType $element)
+    public static function fromASN1(UnspecifiedType $element): static
     {
         return new static($element->asApplication());
     }
 
-    public function toASN1()
+    public function toASN1(): Element
     {
         return new AsnType($this->rawValue);
     }

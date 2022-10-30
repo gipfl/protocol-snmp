@@ -2,9 +2,9 @@
 
 namespace gipfl\Protocol\Snmp;
 
-use ASN1\Type\Constructed\Sequence;
-use ASN1\Type\UnspecifiedType;
 use InvalidArgumentException;
+use Sop\ASN1\Type\Constructed\Sequence;
+use Sop\ASN1\Type\UnspecifiedType;
 
 abstract class SnmpMessage
 {
@@ -20,48 +20,34 @@ abstract class SnmpMessage
         self::SNMP_V3  => 'v3',
     ];
 
-    protected $version;
+    protected int $version;
 
     /**
      * @param Sequence $sequence
      * @return SnmpMessage
      */
-    public static function fromASN1(Sequence $sequence)
+    public static function fromASN1(Sequence $sequence): SnmpMessage
     {
         $version = $sequence->at(0)->asInteger()->intNumber();
 
-        switch ($version) {
-            case self::SNMP_V1:
-                return SnmpV1Message::fromASN1($sequence);
-            case self::SNMP_V2C:
-                return SnmpV2Message::fromASN1($sequence);
-            case SnmpMessage::SNMP_V3:
-                return SnmpV3Message::fromASN1($sequence);
-            default:
-                throw new InvalidArgumentException('Unsupported message version: ' . $version);
-        }
+        return match ($version) {
+            self::SNMP_V1        => SnmpV1Message::fromASN1($sequence),
+            self::SNMP_V2C       => SnmpV2Message::fromASN1($sequence),
+            SnmpMessage::SNMP_V3 => SnmpV3Message::fromASN1($sequence),
+            default => throw new InvalidArgumentException("Unsupported message version: $version"),
+        };
     }
 
-    /**
-     * @return Sequence
-     */
-    abstract public function toASN1();
+    abstract public function toASN1(): Sequence;
 
-    /**
-     * @return Pdu
-     */
-    abstract public function getPdu();
+    abstract public function getPdu(): Pdu;
 
-    /**
-     * @param $binary
-     * @return SnmpMessage
-     */
-    public static function fromBinary($binary)
+    public static function fromBinary(string $binary): SnmpMessage
     {
         return static::fromASN1(UnspecifiedType::fromDER($binary)->asSequence());
     }
 
-    public function getVersion()
+    public function getVersion(): string
     {
         return static::$versionNames[$this->version];
     }

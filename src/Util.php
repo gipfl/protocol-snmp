@@ -4,7 +4,7 @@ namespace gipfl\Protocol\Snmp;
 
 class Util
 {
-    protected static $hexDumpWidth = 16;
+    protected static int $hexDumpWidth = 16;
 
     /**
      * @param $data
@@ -12,7 +12,7 @@ class Util
      * @param int $width Number of Bytes per line
      * @param string $pad Padding for non-visible characters
      */
-    public static function hexDump($data, $newline = "\n", $width = 16, $pad = '.')
+    public static function hexDump($data, string $newline = "\n", int $width = 16, string $pad = '.'): void
     {
         $from = '';
         $to = '';
@@ -39,7 +39,7 @@ class Util
         }
     }
 
-    protected static function renderChunkedHex($line)
+    protected static function renderChunkedHex($line): string
     {
         $parts = array_chunk(str_split($line, 2), 4);
 
