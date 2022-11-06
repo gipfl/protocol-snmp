@@ -17,6 +17,11 @@
             "gipfl\\Protocol\\Snmp\\": "src"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "gipfl\\Tests\\Protocol\\Snmp\\": "tests/"
+        }
+    },
     "repositories": [
         {
             "type": "vcs",
