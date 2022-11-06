@@ -4,6 +4,16 @@ gipfl\\Snmp - SNMP library
 SNMP protocol implementation in raw PHP for async usage. API is still subject
 to change, SNMPv3 is currently missing, but will be implemented.
 
+
+[![Coding Standards](https://github.com/gipfl/protocol-snmp/actions/workflows/CodingStandards.yml/badge.svg)](https://github.com/gipfl/protocol-snmp/actions/workflows/CodingStandards.yml)
+[![Unit Tests](https://github.com/gipfl/protocol-snmp/actions/workflows/UnitTests.yml/badge.svg)](https://github.com/gipfl/protocol-snmp/actions/workflows/UnitTests.yml)
+[![Static Analysis](https://github.com/gipfl/protocol-snmp/actions/workflows/StaticAnalysis.yml/badge.svg)](https://github.com/gipfl/protocol-snmp/actions/workflows/StaticAnalysis.yml)
+[![PHPStan Level 5](https://img.shields.io/badge/PHPStan-level%205-brightgreen.svg?style=flat)](https://phpstan.org/)
+[![Minimum PHP Version: 8.1](https://img.shields.io/badge/php-%3E%3D%208.1-8892BF.svg)](https://php.net/)
+[![License: MIT](https://poser.pugx.org/gipfl/protocol-snmp/license)](https://choosealicense.com/licenses/mit/)
+[![Version](https://poser.pugx.org/gipfl/protocol-snmp/version)](https://packagist.org/packages/gipfl/protocol-snmp)
+
+
 Usage
 -----
 
