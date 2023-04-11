@@ -11,7 +11,7 @@ class VarBind
 {
     use SequenceTrait;
 
-    public function __construct(
+    final public function __construct(
         public readonly string $oid,
         public readonly DataType $value = new NullType()
     ) {
@@ -22,13 +22,13 @@ class VarBind
         return new Sequence(new ObjectIdentifier($this->oid), $this->value->toASN1());
     }
 
-    public static function fromASN1(Sequence $varBind): VarBind
+    public static function fromASN1(Sequence $varBind): static
     {
         // $varBind->count() === 2
 
         $oid = $varBind->at(0)->asObjectIdentifier()->oid();
         $value = DataType::fromASN1($varBind->at(1));
 
-        return new self($oid, $value);
+        return new static($oid, $value);
     }
 }
