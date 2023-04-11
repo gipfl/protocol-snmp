@@ -26,7 +26,7 @@ class Socket implements EventEmitterInterface, RequestIdConsumer
     /** @var array<int, Deferred> */
     protected array $pendingRequests = [];
 
-    /** @var array<int, array<string, string>> */
+    /** @var array<int, array<string, ?string>> */
     protected array $pendingRequestOidLists = [];
 
     /** @var array<int, TimerInterface> */
