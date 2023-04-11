@@ -15,6 +15,7 @@ class FetchTable
 {
     protected Deferred $deferred;
 
+    /** @var array<int|string, array<string, mixed>> */
     protected array $results;
 
     /** @var array<int|string, string> */
@@ -77,9 +78,11 @@ class FetchTable
             });
     }
 
-    protected function handleResult($result): void
+    /**
+     * @param DataType[] $result
+     */
+    protected function handleResult(array $result): void
     {
-        /** @var DataType $value */
         foreach ($result as $oid => $value) {
             [$idx, $key] = $this->splitAtFirstDot($this->stripPrefix($oid));
             // Dropping 1.
