@@ -33,7 +33,7 @@ $newTrap = function ($id) use ($community) {
 
 $i = 0;
 $reported = 0;
-$debug = false;
+$debug = in_array('--debug', $argv);
 $target = '127.0.0.1';
 
 $send = function () use ($socket, &$newTrap, &$i, $target) {
