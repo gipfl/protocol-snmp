@@ -176,7 +176,10 @@ class Socket implements EventEmitterInterface, RequestIdConsumer
         $wantsResponse = $pdu->wantsResponse();
         if ($wantsResponse) {
             $deferred = new Deferred();
-            $id = $pdu->getRequestId();
+            $id = $pdu->requestId;
+            if ($id === null) {
+                throw new RuntimeException('Cannot send a request w/o id');
+            }
             $this->pendingRequests[$id] = $deferred;
             $this->scheduleTimeout($id);
             $result = $deferred->promise();
@@ -190,7 +193,12 @@ class Socket implements EventEmitterInterface, RequestIdConsumer
         return $result;
     }
 
-    protected function prepareAndScheduleOidList(int $id, array $oidList): VarBinds
+    /**
+     * @param int $id
+     * @param array<string, ?string> $oidList oid => alias
+     * @return VarBind[]
+     */
+    protected function prepareAndScheduleOidList(int $id, array $oidList): array
     {
         $this->pendingRequestOidLists[$id] = $oidList;
         $binds = [];
@@ -198,7 +206,7 @@ class Socket implements EventEmitterInterface, RequestIdConsumer
             $binds[] = new VarBind($oid);
         }
 
-        return new VarBinds(...$binds);
+        return $binds;
     }
 
     protected function scheduleTimeout(int $id, int $timeout = 30)
@@ -263,8 +271,8 @@ class Socket implements EventEmitterInterface, RequestIdConsumer
             $this->emit('trap', [$message, $peer]);
             return;
         }
-        $requestId = $pdu->getRequestId();
-        if (isset($this->pendingRequests[$requestId])) {
+        $requestId = $pdu->requestId;
+        if ($requestId !== null && isset($this->pendingRequests[$requestId])) {
             $deferred = $this->pendingRequests[$requestId];
             $oidList = $this->pendingRequestOidLists[$requestId];
             $this->clearPendingRequest($requestId);
@@ -273,8 +281,7 @@ class Socket implements EventEmitterInterface, RequestIdConsumer
                 $deferred->reject(new Exception('ERROR (TODO: get errorStatus/errorIndex)'));
             } else {
                 $result = [];
-                /** @var VarBind $varBind */
-                foreach ($pdu->getVarBinds()->iterate() as $varBind) {
+                foreach ($pdu->varBinds as $varBind) {
                     $oid = $varBind->oid;
                     if (isset($oidList[$oid])) {
                         $result[$oidList[$oid]] = $varBind->value;

@@ -3,6 +3,7 @@
 namespace gipfl\Protocol\Snmp;
 
 use InvalidArgumentException;
+use RuntimeException;
 use Sop\ASN1\Element;
 use Sop\ASN1\Type\Constructed\Sequence;
 use Sop\ASN1\Type\Primitive\Integer;
@@ -21,16 +22,17 @@ abstract class Pdu
     const TRAP_V2 = 7; // ?
     const REPORT = 8;
 
-    protected ?int $requestId;
     protected int $errorStatus = 0; // error-status: noError(0)
     protected int $errorIndex = 0;
-    protected VarBinds $varBinds;
     protected bool $wantsResponse = false;
 
-    public function __construct(VarBinds $varBinds, ?int $requestId = null)
-    {
-        $this->varBinds = $varBinds;
-        $this->requestId = $requestId;
+    /**
+     * @param VarBind[] $varBinds
+     */
+    public function __construct(
+        public readonly array $varBinds,
+        public ?int $requestId = null
+    ) {
     }
 
     abstract public function getTag(): int;
@@ -40,23 +42,6 @@ abstract class Pdu
         return $this->wantsResponse;
     }
 
-    public function getRequestId(): ?int
-    {
-        return $this->requestId;
-    }
-
-    public function setRequestId($id): static
-    {
-        $this->requestId = $id;
-
-        return $this;
-    }
-
-    public function getVarBinds(): VarBinds
-    {
-        return $this->varBinds;
-    }
-
     public function isError(): bool
     {
         return $this->errorStatus !== 0;
@@ -64,19 +49,22 @@ abstract class Pdu
 
     public function toASN1(): ImplicitlyTaggedType
     {
+        if ($this->requestId === null) {
+            throw new RuntimeException('Cannot created ASN1 type w/o requiestId');
+        }
         return new ImplicitlyTaggedType($this->getTag(), new Sequence(
             new Integer($this->requestId),
             new Integer($this->errorStatus),
             new Integer($this->errorIndex),
-            $this->varBinds->toASN1()
+            VarBind::listToSequence($this->varBinds)
         ));
     }
 
-    public static function fromASN1(TaggedType $tagged)
+    public static function fromASN1(TaggedType $tagged): Pdu
     {
         $sequence = $tagged->asImplicit(Element::TYPE_SEQUENCE)->asSequence();
         // $sequence->count() === 4;
-        $varBinds = VarBinds::fromASN1($sequence->at(3)->asSequence());
+        $varBinds = VarBind::listFromSequence($sequence->at(3)->asSequence());
         $pdu = match ($tagged->tag()) {
             self::GET_REQUEST      => new GetRequest($varBinds),
             self::GET_NEXT_REQUEST => new GetNextRequest($varBinds),

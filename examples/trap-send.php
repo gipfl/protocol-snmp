@@ -7,7 +7,6 @@ use gipfl\Protocol\Snmp\Socket;
 use gipfl\Protocol\Snmp\SnmpV2Message;
 use gipfl\Protocol\Snmp\TrapV2;
 use gipfl\Protocol\Snmp\VarBind;
-use gipfl\Protocol\Snmp\VarBinds;
 use React\EventLoop\Loop;
 
 const TRAP_OID = '1.3.6.1.6.3.1.1.4.1';
@@ -24,16 +23,15 @@ $socket = new Socket();
 $community = 'public';
 
 $newTrap = function ($id) use ($community, $startTime) {
-    //$uptime = time() - $startTime;
-    $varBinds = new VarBinds(
-        // new VarBind(SYS_UPTIME, $uptime),
+    // $uptime = time() - $startTime;
+
+    return new SnmpV2Message($community, new TrapV2([
+        // new VarBind(SYS_UPTIME, new TimeTicks($uptime)),
         new VarBind(TRAP_OID, ObjectIdentifier::fromString(LINK_UP)),
         new VarBind(IF_DESCR, OctetString::fromString('eth0')),
         new VarBind(IF_ADMIN_STATUS, Integer32::fromInteger(1)),
         new VarBind(IF_OPER_STATUS, Integer32::fromInteger(1))
-    );
-
-    return new SnmpV2Message($community, new TrapV2($varBinds, $id));
+    ], $id));
 };
 
 $i = 0;

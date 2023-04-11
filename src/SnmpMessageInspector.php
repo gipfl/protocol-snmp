@@ -16,8 +16,7 @@ class SnmpMessageInspector
             $result .= sprintf("Community: %s\n", $message->community);
         }
 
-        /** @var VarBind $varBind */
-        foreach ($message->getPdu()->getVarBinds()->iterate() as $varBind) {
+        foreach ($message->getPdu()->varBinds as $varBind) {
             $result .= sprintf(
                 "%s: %s\n",
                 $varBind->oid,
