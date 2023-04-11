@@ -3,6 +3,7 @@
 use gipfl\Protocol\Snmp\DataType\Integer32;
 use gipfl\Protocol\Snmp\DataType\ObjectIdentifier;
 use gipfl\Protocol\Snmp\DataType\OctetString;
+use gipfl\Protocol\Snmp\DataType\TimeTicks;
 use gipfl\Protocol\Snmp\Socket;
 use gipfl\Protocol\Snmp\SnmpV2Message;
 use gipfl\Protocol\Snmp\TrapV2;
@@ -18,15 +19,11 @@ const IF_OPER_STATUS  = '1.3.6.1.2.1.2.2.1.8';
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-$startTime = time();
 $socket = new Socket();
 $community = 'public';
-
-$newTrap = function ($id) use ($community, $startTime) {
-    // $uptime = time() - $startTime;
-
+$newTrap = function ($id) use ($community) {
     return new SnmpV2Message($community, new TrapV2([
-        // new VarBind(SYS_UPTIME, new TimeTicks($uptime)),
+        new VarBind(SYS_UPTIME, TimeTicks::fromInteger(hrtime()[0])),
         new VarBind(TRAP_OID, ObjectIdentifier::fromString(LINK_UP)),
         new VarBind(IF_DESCR, OctetString::fromString('eth0')),
         new VarBind(IF_ADMIN_STATUS, Integer32::fromInteger(1)),

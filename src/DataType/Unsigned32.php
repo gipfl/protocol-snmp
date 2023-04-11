@@ -5,32 +5,27 @@ namespace gipfl\Protocol\Snmp\DataType;
 use InvalidArgumentException;
 use Sop\ASN1\Element;
 use Sop\ASN1\Type\Primitive\Integer;
-use Sop\ASN1\Type\Tagged\ApplicationType;
 use Sop\ASN1\Type\UnspecifiedType;
 
 class Unsigned32 extends DataType
 {
     protected int $tag = self::UNSIGNED_32;
 
-    final protected function __construct(ApplicationType $app)
+    final public function __construct(int $int)
     {
-        $tag = $this->getTag();
-        $value = $app->asImplicit(Element::TYPE_INTEGER, $tag)->asInteger()->intNumber();
-        if ($value < 0 || $value > 4294967295) {
+        if ($int < 0 || $int > 4294967295) {
             throw new InvalidArgumentException(sprintf(
                 '%s is not a valid unsigned integer',
-                $value
+                $int
             ));
         }
-        parent::__construct($value);
+        parent::__construct($int);
     }
 
-    // TODO
-    // public static function fromInteger(int $int): static
-    // {
-    //     new ApplicationType();
-    //     return new static($int);
-    // }
+    public static function fromInteger(int $int): static
+    {
+        return new static($int);
+    }
 
     public function jsonSerialize(): array
     {
@@ -42,7 +37,7 @@ class Unsigned32 extends DataType
 
     public static function fromASN1(UnspecifiedType $element): static
     {
-        return new static($element->asApplication());
+        return new static($element->asInteger()->intNumber());
     }
 
     public function toASN1(): Element

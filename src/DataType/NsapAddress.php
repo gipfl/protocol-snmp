@@ -5,26 +5,22 @@ namespace gipfl\Protocol\Snmp\DataType;
 use InvalidArgumentException;
 use Sop\ASN1\Element;
 use Sop\ASN1\Type\Primitive\OctetString as AsnType;
-use Sop\ASN1\Type\Tagged\ApplicationType;
 use Sop\ASN1\Type\UnspecifiedType;
 
 class NsapAddress extends DataType
 {
     protected int $tag = self::NSAP_ADDRESS;
 
-    final protected function __construct(ApplicationType $app)
+    final protected function __construct(string $string)
     {
-        $tag = $this->getTag();
-        $binary = $app->asImplicit(Element::TYPE_OCTET_STRING, $tag)->asOctetString()->string();
-
-        if (strlen($binary) > 20) {
+        if (strlen($string) > 20) {
             throw new InvalidArgumentException(sprintf(
                 '0x%s is not a valid NSAP Address',
-                bin2hex($binary)
+                bin2hex($string)
             ));
         }
 
-        parent::__construct($binary);
+        parent::__construct($string);
     }
 
     public function jsonSerialize(): array
@@ -42,7 +38,7 @@ class NsapAddress extends DataType
 
     public static function fromASN1(UnspecifiedType $element): static
     {
-        return new static($element->asApplication());
+        return new static($element->asOctetString()->string());
     }
 
     public function toASN1(): Element
