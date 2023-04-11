@@ -6,6 +6,7 @@ use InvalidArgumentException;
 
 class ErrorStatus
 {
+    // 0-5 are available since v1:
     public const NO_ERROR = 0;
     public const TOO_BIG = 1;
     // Hint: noSuchName, badValue and readOnly are here for proxy compatibility
@@ -13,6 +14,8 @@ class ErrorStatus
     public const BAD_VALUE = 3;
     public const READ_ONLY = 4;
     public const GEN_ERR = 5;
+
+    // available since v2:
     public const NO_ACCESS = 6;
     public const WRONG_TYPE = 7;
     public const WRONG_LENGTH = 8;
@@ -52,9 +55,7 @@ class ErrorStatus
     public function __construct(
         protected int $status
     ) {
-        if (\array_key_exists($status, self::ERROR_TO_NAME_MAP)) {
-            $this->status = $status;
-        } else {
+        if (!\array_key_exists($status, self::ERROR_TO_NAME_MAP)) {
             throw new InvalidArgumentException("$status is not a valid ErrorStatus");
         }
     }
