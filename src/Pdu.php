@@ -12,15 +12,15 @@ use Sop\ASN1\Type\TaggedType;
 
 abstract class Pdu
 {
-    const GET_REQUEST = 0;
-    const GET_NEXT_REQUEST = 1;
-    const RESPONSE = 2;
-    const SET_REQUEST = 3;
-    const TRAP = 4; // Special, obsolete
-    const GET_BULK_REQUEST = 5; // Special
-    const INFORM_REQUEST = 6;
-    const TRAP_V2 = 7; // ?
-    const REPORT = 8;
+    public const GET_REQUEST = 0;
+    public const GET_NEXT_REQUEST = 1;
+    public const RESPONSE = 2;
+    public const SET_REQUEST = 3;
+    public const TRAP = 4; // Special, obsolete
+    public const GET_BULK_REQUEST = 5; // Special
+    public const INFORM_REQUEST = 6;
+    public const TRAP_V2 = 7; // ?
+    public const REPORT = 8;
 
     protected int $errorStatus = 0; // error-status: noError(0)
     protected int $errorIndex = 0;

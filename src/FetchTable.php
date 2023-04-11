@@ -6,15 +6,23 @@ use gipfl\Protocol\Snmp\DataType\DataType;
 use React\EventLoop\Loop;
 use React\Promise\Deferred;
 use React\Promise\ExtendedPromiseInterface;
+
 use function ltrim;
+use function strlen;
+use function substr;
 
 class FetchTable
 {
     protected Deferred $deferred;
+
     protected array $results;
+
+    /** @var array<int|string, string> */
     protected array $pendingColumns;
+
+    /** @var array<int|string, string> */
     protected array $columns;
-    protected string $target;
+    protected SocketAddress $target;
     protected string $community;
     protected string $baseOid;
     protected string $currentPrefix;
@@ -26,8 +34,15 @@ class FetchTable
     ) {
     }
 
-    public function fetchTable($oid, array $columns, string $target, string $community): ExtendedPromiseInterface
-    {
+    /**
+     * @param array<int|string, string> $columns
+     */
+    public function fetchTable(
+        string $oid,
+        array $columns,
+        SocketAddress $target,
+        string $community
+    ): ExtendedPromiseInterface {
         $this->results = [];
         $this->baseOid = $oid;
         $this->target = $target;
@@ -47,6 +62,9 @@ class FetchTable
 
     protected function next(): void
     {
+        if (empty($this->pendingColumns)) {
+            throw new \LogicException('Cannot call next() on empty pending columns');
+        }
         $column = array_shift($this->pendingColumns);
         $this->currentColumn = $column;
         $this->currentPrefix = $this->baseOid . '.' . $column;
@@ -63,9 +81,9 @@ class FetchTable
     {
         /** @var DataType $value */
         foreach ($result as $oid => $value) {
-            list($idx, $key) = $this->splitAtFirstDot($this->stripPrefix($oid));
+            [$idx, $key] = $this->splitAtFirstDot($this->stripPrefix($oid));
             // Dropping 1.
-            list($idx, $key) = $this->splitAtFirstDot($key);
+            [$idx, $key] = $this->splitAtFirstDot($key);
             // Now idx is the column. We don't care, as we already have it in currentColummn
             $this->results[$key][$this->currentColumn] = $value->toArray();
         }
@@ -79,6 +97,10 @@ class FetchTable
         }
     }
 
+    /**
+     * @param string $oid
+     * @return array{0: string, 1: string}
+     */
     protected function splitAtFirstDot(string $oid): array
     {
         $dot = strpos($oid, '.');
@@ -92,7 +114,7 @@ class FetchTable
         ];
     }
 
-    protected function hasPrefix($oid, $prefix): bool
+    protected function hasPrefix(string $oid, string $prefix): bool
     {
         return str_starts_with($oid, $prefix);
     }
@@ -104,7 +126,7 @@ class FetchTable
         }
 
         if (str_starts_with($oid, $prefix)) {
-            $oid = \substr($oid, \strlen($prefix));
+            $oid = substr($oid, strlen($prefix));
         }
 
         return ltrim($oid, '.');

@@ -10,9 +10,9 @@ class Integer32 extends DataType
 {
     protected int $tag = Element::TYPE_INTEGER;
 
-    public static function fromInteger($int): Integer32
+    public static function fromInteger(int $int): Integer32
     {
-        return new Integer32((int) $int);
+        return new Integer32($int);
     }
 
     public static function fromASN1(UnspecifiedType $element): Integer32
@@ -22,7 +22,7 @@ class Integer32 extends DataType
 
     public function toASN1(): Element
     {
-        return new Integer($this->rawValue);
+        return new Integer(AsnTypeHelper::wantGmpIntString($this->rawValue));
     }
 
     public function toArray(): array

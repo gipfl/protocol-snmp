@@ -8,10 +8,10 @@ use Sop\ASN1\Type\Primitive\OctetString;
 
 class SnmpV3Message extends SnmpMessage
 {
-    const SECURITY_NO_AUTH = 0x00;
-    const SECURITY_AUTH_NO_PRIV = 0x01;
-    const SECURITY_AUTH_PRIV = 0x11;
-    const REPORTABLE_FLAG = "\x04";
+    protected const SECURITY_NO_AUTH = 0x00;
+    protected const SECURITY_AUTH_NO_PRIV = 0x01;
+    protected const SECURITY_AUTH_PRIV = 0x11;
+    protected const REPORTABLE_FLAG = "\x04";
 
     protected int $version = self::SNMP_V3;
 

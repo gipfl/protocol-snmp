@@ -6,6 +6,7 @@ use InvalidArgumentException;
 use Sop\ASN1\Type\Constructed\Sequence;
 use Sop\ASN1\Type\Primitive\Integer;
 use Sop\ASN1\Type\Primitive\OctetString;
+
 use function strlen;
 
 class Snmpv3Header

@@ -4,12 +4,12 @@ namespace gipfl\Protocol\Snmp;
 
 class SnmpMessageInspector
 {
-    public static function dump(SnmpMessage $message)
+    public static function dump(SnmpMessage $message): void
     {
         echo static::getDump($message);
     }
 
-    public static function getDump(SnmpMessage $message)
+    public static function getDump(SnmpMessage $message): string
     {
         $result = sprintf("Version: %s\n", $message->getVersion());
         if ($message instanceof SnmpV1Message) {

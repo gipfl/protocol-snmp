@@ -39,7 +39,7 @@ $reported = 0;
 $debug = false;
 $target = '127.0.0.1';
 
-$send = function () use ($socket, &$newTrap, &$i, &$send, $target) {
+$send = function () use ($socket, &$newTrap, &$i, $target) {
     for ($a = 0; $a < 100; $a ++) {
         $i++;
         $trap = $newTrap($i);
@@ -49,12 +49,14 @@ $send = function () use ($socket, &$newTrap, &$i, &$send, $target) {
     }
 };
 $showReport = function () use (&$i, &$reported, $debug) {
-    printf(
-        "%s: sent %d Traps (total: %d)\n",
-        date('H:i:s'),
-        $i - $reported,
-        $i
-    );
+    if ($debug) {
+        printf(
+            "%s: sent %d Traps (total: %d)\n",
+            date('H:i:s'),
+            $i - $reported,
+            $i
+        );
+    }
 
     $reported = $i;
 };

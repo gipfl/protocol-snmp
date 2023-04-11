@@ -6,6 +6,7 @@ use Sop\ASN1\Element;
 use Sop\ASN1\Type\Primitive\OctetString as AsnType;
 use Sop\ASN1\Type\Tagged\ApplicationType;
 use Sop\ASN1\Type\UnspecifiedType;
+
 use function bin2hex;
 
 class Opaque extends DataType
@@ -22,7 +23,7 @@ class Opaque extends DataType
 
     public function getReadableValue(): string
     {
-        return '0x' . bin2hex($this->rawValue);
+        return '0x' . bin2hex(AsnTypeHelper::wantString($this->rawValue));
     }
 
     public function toArray(): array
@@ -40,6 +41,6 @@ class Opaque extends DataType
 
     public function toASN1(): Element
     {
-        return new AsnType($this->rawValue);
+        return new AsnType(AsnTypeHelper::wantString($this->rawValue));
     }
 }

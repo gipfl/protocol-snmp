@@ -37,7 +37,7 @@ class NsapAddress extends DataType
 
     public function getReadableValue(): string
     {
-        return '0x' . bin2hex($this->rawValue);
+        return '0x' . bin2hex(AsnTypeHelper::wantString($this->rawValue));
     }
 
     public static function fromASN1(UnspecifiedType $element): static
@@ -47,6 +47,6 @@ class NsapAddress extends DataType
 
     public function toASN1(): Element
     {
-        return new AsnType($this->rawValue);
+        return new AsnType(AsnTypeHelper::wantString($this->rawValue));
     }
 }

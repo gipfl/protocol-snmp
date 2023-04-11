@@ -36,7 +36,13 @@ class IpAddress extends DataType
 
     public function getReadableValue(): string
     {
-        return inet_ntop($this->rawValue);
+        $value = AsnTypeHelper::wantString($this->rawValue);
+        $readable = inet_ntop($value);
+        if ($readable === false) {
+            return sprintf('<not an IP address: %s>', $value);
+        }
+
+        return $readable;
     }
 
     public static function fromASN1(UnspecifiedType $element): static
@@ -46,6 +52,6 @@ class IpAddress extends DataType
 
     public function toASN1(): Element
     {
-        return new AsnType($this->rawValue);
+        return new AsnType(AsnTypeHelper::wantString($this->rawValue));
     }
 }

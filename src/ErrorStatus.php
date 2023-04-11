@@ -6,28 +6,28 @@ use InvalidArgumentException;
 
 class ErrorStatus
 {
-    const NO_ERROR = 0;
-    const TOO_BIG = 1;
+    public const NO_ERROR = 0;
+    public const TOO_BIG = 1;
     // Hint: noSuchName, badValue and readOnly are here for proxy compatibility
-    const NO_SUCH_NAME = 2;
-    const BAD_VALUE = 3;
-    const READ_ONLY = 4;
-    const GEN_ERR = 5;
-    const NO_ACCESS = 6;
-    const WRONG_TYPE = 7;
-    const WRONG_LENGTH = 8;
-    const WRONG_ENCODING = 9;
-    const WRONG_VALUE = 10;
-    const NO_CREATION = 11;
-    const INCONSISTENT_VALUE = 12;
-    const RESOURCE_UNAVAILABLE = 13;
-    const COMMIT_FAILED = 14;
-    const UNDO_FAILED = 15;
-    const AUTHORIZATION_ERROR = 16;
-    const NOT_WRITABLE = 17;
-    const INCONSISTENT_NAME = 18;
+    public const NO_SUCH_NAME = 2;
+    public const BAD_VALUE = 3;
+    public const READ_ONLY = 4;
+    public const GEN_ERR = 5;
+    public const NO_ACCESS = 6;
+    public const WRONG_TYPE = 7;
+    public const WRONG_LENGTH = 8;
+    public const WRONG_ENCODING = 9;
+    public const WRONG_VALUE = 10;
+    public const NO_CREATION = 11;
+    public const INCONSISTENT_VALUE = 12;
+    public const RESOURCE_UNAVAILABLE = 13;
+    public const COMMIT_FAILED = 14;
+    public const UNDO_FAILED = 15;
+    public const AUTHORIZATION_ERROR = 16;
+    public const NOT_WRITABLE = 17;
+    public const INCONSISTENT_NAME = 18;
 
-    const ERROR_TO_NAME_MAP = [
+    protected const ERROR_TO_NAME_MAP = [
         self::NO_ERROR             => 'noError',
         self::TOO_BIG              => 'tooBig',
         self::NO_SUCH_NAME         => 'noSuchName',

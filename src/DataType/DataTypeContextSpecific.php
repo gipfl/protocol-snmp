@@ -10,17 +10,18 @@ use Sop\ASN1\Type\UnspecifiedType;
 
 class DataTypeContextSpecific extends DataType
 {
-    const NO_SUCH_OBJECT = 0;
-    const NO_SUCH_INSTANCE = 1;
-    const END_OF_MIB_VIEW = 2;
+    public const NO_SUCH_OBJECT = 0;
+    public const NO_SUCH_INSTANCE = 1;
+    public const END_OF_MIB_VIEW = 2;
 
+    /** @var array<int, string> */
     protected static array $errorMessages = [
         self::NO_SUCH_OBJECT   => 'No such object',
         self::NO_SUCH_INSTANCE => 'No such instance',
         self::END_OF_MIB_VIEW  => 'End of MIB view',
     ];
 
-    final protected function __construct($rawValue)
+    final protected function __construct(int $rawValue)
     {
         parent::__construct(null);
         $this->tag = $rawValue;

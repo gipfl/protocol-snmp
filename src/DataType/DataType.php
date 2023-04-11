@@ -2,23 +2,26 @@
 
 namespace gipfl\Protocol\Snmp\DataType;
 
+use GMP;
 use InvalidArgumentException;
+use RuntimeException;
 use Sop\ASN1\Component\Identifier;
 use Sop\ASN1\Element;
 use Sop\ASN1\Type\UnspecifiedType;
+use Stringable;
 
 abstract class DataType
 {
-    const IP_ADDRESS = 0;
-    const COUNTER_32 = 1;
-    const GAUGE_32 = 2;
-    const TIME_TICKS = 3;
-    const OPAQUE = 4;
-    const NSAP_ADDRESS = 5;
-    const COUNTER_64 = 6;
-    const UNSIGNED_32 = 7;
+    public const IP_ADDRESS = 0;
+    public const COUNTER_32 = 1;
+    public const GAUGE_32 = 2;
+    public const TIME_TICKS = 3;
+    public const OPAQUE = 4;
+    public const NSAP_ADDRESS = 5;
+    public const COUNTER_64 = 6;
+    public const UNSIGNED_32 = 7;
 
-    const TYPE_TO_NAME_MAP = [
+    protected const TYPE_TO_NAME_MAP = [
         self::IP_ADDRESS   => 'ip_address',
         self::COUNTER_32   => 'counter32',
         self::GAUGE_32     => 'gauge32',
@@ -38,7 +41,7 @@ abstract class DataType
     // big-counter-value => Counter64
     // unsigned-integer-value => Unsigned32
 
-    const NAME_TO_TYPE_MAP = [
+    protected const NAME_TO_TYPE_MAP = [
         'ip_address'   => self::IP_ADDRESS,
         'counter32'    => self::COUNTER_32,
         'gauge32'      => self::GAUGE_32,
@@ -49,11 +52,12 @@ abstract class DataType
         'unsigned32'   => self::UNSIGNED_32,
     ];
 
+    /** @var mixed TODO: 'mixed' causes problems and asks for too much type checking */
     protected mixed $rawValue;
 
     protected int $tag;
 
-    protected function __construct($rawValue)
+    protected function __construct(mixed $rawValue)
     {
         $this->rawValue = $rawValue;
     }
@@ -72,10 +76,20 @@ abstract class DataType
 
     public function getReadableValue(): string
     {
-        return $this->rawValue;
+        if (is_string($this->rawValue) || is_int($this->rawValue)) {
+            return (string)$this->rawValue;
+        }
+        if ($this->rawValue instanceof GMP) {
+            return gmp_strval($this->rawValue);
+        }
+        if ($this->rawValue instanceof Stringable) {
+            return (string) $this->rawValue;
+        }
+
+        throw new RuntimeException('Cannot provide readable value for rawValue in ' . get_class($this));
     }
 
-    public static function fromBinary($binary): DataType|static
+    public static function fromBinary(string $binary): DataType|static
     {
         return self::fromASN1(UnspecifiedType::fromDER($binary));
     }

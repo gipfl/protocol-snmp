@@ -5,7 +5,9 @@ namespace gipfl\Protocol\Snmp;
 use React\EventLoop\Loop;
 use React\Datagram\Socket as DatagramSocket;
 use RuntimeException;
+
 use function stream_socket_server;
+
 use const STREAM_SERVER_BIND;
 
 class UdpSocketFactory
@@ -25,8 +27,14 @@ class UdpSocketFactory
         return static::prepareUdpSocketWithContext($socketAddress, self::prepareBroadcastStreamContext($socketAddress));
     }
 
-    protected static function prepareUdpSocketWithContext(SocketAddress $socketAddress, $context): DatagramSocket
-    {
+    protected static function prepareUdpSocketWithContext(
+        SocketAddress $socketAddress,
+        /** @var resource $context */
+        mixed $context
+    ): DatagramSocket {
+        if (! is_resource($context)) {
+            throw new RuntimeException('$context must be a resource');
+        }
         $socket = @stream_socket_server(
             $socketAddress->toUdpUri(),
             $errNo,

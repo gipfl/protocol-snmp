@@ -10,9 +10,6 @@ class SnmpV1Message extends SnmpMessage
 {
     protected int $version = self::SNMP_V1;
 
-    // unused
-    protected $rawPdu;
-
     final public function __construct(
         #[\SensitiveParameter]
         public readonly string $community,

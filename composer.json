@@ -31,6 +31,7 @@
     ],
     "require": {
         "php": ">=8.1.0",
+        "ext-gmp": "*",
         "ext-json": "*",
         "gipfl/protocol": ">=0.2",
         "react/datagram": ">=1.4",

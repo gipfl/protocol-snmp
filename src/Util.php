@@ -7,17 +7,20 @@ class Util
     protected static int $hexDumpWidth = 16;
 
     /**
-     * @param $data
+     * @param string $data
      * @param string $newline
      * @param int $width Number of Bytes per line
      * @param string $pad Padding for non-visible characters
      */
-    public static function hexDump($data, string $newline = "\n", int $width = 16, string $pad = '.'): void
+    public static function hexDump(string $data, string $newline = "\n", int $width = 16, string $pad = '.'): void
     {
+        if ($width < 1) {
+            throw new \RuntimeException('hexDump: $width needs to be greater than 1, got ' . $width);
+        }
         $from = '';
         $to = '';
 
-        if ($from === '') {
+        if ($from === '') { // TODO: figure out, why this useless check is in place
             for ($i = 0; $i <= 0xFF; $i++) {
                 $from .= chr($i);
                 $to .= ($i >= 0x20 && $i <= 0x7E) ? chr($i) : $pad;
@@ -39,7 +42,7 @@ class Util
         }
     }
 
-    protected static function renderChunkedHex($line): string
+    protected static function renderChunkedHex(string $line): string
     {
         $parts = array_chunk(str_split($line, 2), 4);
 

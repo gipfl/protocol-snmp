@@ -10,7 +10,7 @@ class ObjectIdentifier extends DataType
 {
     protected int $tag = Element::TYPE_OBJECT_IDENTIFIER;
 
-    public static function fromString($oid): ObjectIdentifier
+    public static function fromString(string $oid): ObjectIdentifier
     {
         return new ObjectIdentifier($oid);
     }
@@ -30,6 +30,6 @@ class ObjectIdentifier extends DataType
 
     public function toASN1(): Element
     {
-        return new AsnType($this->rawValue);
+        return new AsnType(AsnTypeHelper::wantString($this->rawValue));
     }
 }

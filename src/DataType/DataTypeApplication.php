@@ -30,7 +30,7 @@ abstract class DataTypeApplication extends DataType
 
     public function toASN1(): Element
     {
-        $int = new Integer($this->rawValue);
+        $int = new Integer(AsnTypeHelper::wantGmpIntString($this->rawValue));
         return new ImplicitlyTaggedType(
             self::getTag(),
             $int,

@@ -23,14 +23,16 @@ $oidList = [
 ];
 
 foreach ($ips as $ip) {
-    $socket->get($oidList, $ip, $community)->then(function ($result) {
+    $promise = $socket->get($oidList, $ip, $community)->then(function ($result) {
         /** @var DataType $value */
         foreach ($result as $key => $value) {
             printf("%s: %s\n", $key, $value->getReadableValue());
         }
-    })->otherwise(function ($reason) use ($ip) {
+    }, function ($reason) use ($ip) {
         echo "No Response from $ip: $reason\n";
-    })->always(function () use ($socket, $ips) {
+    });
+    assert($promise instanceof \React\Promise\ExtendedPromiseInterface);
+    $promise->always(function () use ($socket, $ips) {
         if (! $socket->hasPendingRequests()) {
             printf("Done with %d IPs\n", count($ips));
             Loop::stop();

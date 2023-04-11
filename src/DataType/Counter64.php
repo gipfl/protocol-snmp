@@ -31,7 +31,7 @@ class Counter64 extends DataType
 
     public function toASN1(): Element
     {
-        return new Integer($this->rawValue);
+        return new Integer(AsnTypeHelper::wantGmpIntString($this->rawValue));
     }
 
     public function toArray(): array

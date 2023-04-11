@@ -8,15 +8,15 @@ use PHPUnit\Framework\TestCase;
 
 class ErrorStatusTest extends TestCase
 {
-    public function testNoErrorIsAnError()
+    public function testNoErrorIsAnError(): void
     {
         $error = new ErrorStatus(0);
         $this->assertInstanceOf(ErrorStatus::class, $error);
     }
 
-    public function testInvalidErrorNumberIsNotAccepted()
+    public function testInvalidErrorNumberIsNotAccepted(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $error = new ErrorStatus(42);
+        new ErrorStatus(42);
     }
 }

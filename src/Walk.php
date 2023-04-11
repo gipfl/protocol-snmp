@@ -13,6 +13,7 @@ class Walk
     protected Deferred $deferred;
     protected string $target;
     protected string $community;
+    /** @var array<string, array{'type': string, 'value': mixed}> */
     protected array $results;
     protected string $baseOid;
     protected ?string $nextOid = null;
@@ -59,6 +60,9 @@ class Walk
         // TODO: Align max-repetitions with limit, try to not fetch more than required,
         //       and to avoid useless queries. Like: if we fetch 21 per default (for the
         //       "more" link), it would be a waste of roundtrips to ask for 20 twice
+        if (!$this->nextOid) {
+            throw new \LogicException('Running next() before $nextOid has been set');
+        }
 
         if ($this->getBulk) {
             $maxLimit = 16;
@@ -100,7 +104,8 @@ class Walk
         $oid = $this->baseOid;
         /** @var DataType $value */
         foreach ($result as $newOid => $value) {
-            if (! str_starts_with($newOid, $this->baseOid) // Other prefix
+            if (
+                ! str_starts_with($newOid, $this->baseOid) // Other prefix
                 || ($value instanceof DataTypeContextSpecific
                 && $value->getTag() === DataTypeContextSpecific::END_OF_MIB_VIEW) // End Of MIB
             ) {

@@ -10,11 +10,12 @@ abstract class SnmpMessage
 {
     use SequenceTrait;
 
-    const SNMP_V1  = 0;
-    const SNMP_V2C = 1;
-    const SNMP_V3  = 3;
+    protected const SNMP_V1  = 0;
+    protected const SNMP_V2C = 1;
+    protected const SNMP_V3  = 3;
 
-    public static $versionNames = [
+    /** @var array<int, string> */
+    public static array $versionNames = [
         self::SNMP_V1  => 'v1',
         self::SNMP_V2C => 'v2c',
         self::SNMP_V3  => 'v3',

@@ -10,7 +10,6 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 $socket = new Socket(new SocketAddress('0.0.0.0', 162));
 $cnt = 0;
-$lastTime = 0;
 $reported = 0;
 $showReport = function () use (&$cnt, &$reported) {
     printf(
@@ -27,13 +26,15 @@ $term = function () use (&$showReport) {
 };
 Loop::addSignal(2, $term);
 Loop::addPeriodicTimer(1, $showReport);
-$socket->on('trap', function (SnmpMessage $trap, $peer) use (&$cnt, &$lastTime) {
+$socket->on(Socket::ON_TRAP, function (SnmpMessage $trap, $peer) use (&$cnt) {
     $cnt++;
+    /*
     printf(
         "Got trap from %s:\n%s\n",
         $peer,
         SnmpMessageInspector::getDump($trap)
     );
+    */
 });
 $socket->listen();
 Loop::run();
