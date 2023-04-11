@@ -32,7 +32,7 @@ class Unsigned32 extends DataType
     //     return new static($int);
     // }
 
-    public function toArray(): array
+    public function jsonSerialize(): array
     {
         return [
             'type'  => self::TYPE_TO_NAME_MAP[$this->tag],

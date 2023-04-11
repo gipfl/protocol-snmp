@@ -20,7 +20,7 @@ class ObjectIdentifier extends DataType
         return new ObjectIdentifier($element->asObjectIdentifier()->oid());
     }
 
-    public function toArray(): array
+    public function jsonSerialize(): array
     {
         return [
             'type'  => 'oid',

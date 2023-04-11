@@ -27,7 +27,7 @@ class NsapAddress extends DataType
         parent::__construct($binary);
     }
 
-    public function toArray(): array
+    public function jsonSerialize(): array
     {
         return [
             'type'  => self::TYPE_TO_NAME_MAP[$this->tag],

@@ -26,7 +26,7 @@ class Opaque extends DataType
         return '0x' . bin2hex(AsnTypeHelper::wantString($this->rawValue));
     }
 
-    public function toArray(): array
+    public function jsonSerialize(): array
     {
         return [
             'type'  => self::TYPE_TO_NAME_MAP[$this->getTag()],

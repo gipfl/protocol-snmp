@@ -4,13 +4,14 @@ namespace gipfl\Protocol\Snmp\DataType;
 
 use GMP;
 use InvalidArgumentException;
+use JsonSerializable;
 use RuntimeException;
 use Sop\ASN1\Component\Identifier;
 use Sop\ASN1\Element;
 use Sop\ASN1\Type\UnspecifiedType;
 use Stringable;
 
-abstract class DataType
+abstract class DataType implements JsonSerializable
 {
     public const IP_ADDRESS = 0;
     public const COUNTER_32 = 1;
@@ -72,7 +73,7 @@ abstract class DataType
     /**
      * @return array{'type': string, 'value': mixed}
      */
-    abstract public function toArray(): array;
+    abstract public function jsonSerialize(): array;
 
     public function getReadableValue(): string
     {

@@ -85,7 +85,7 @@ class FetchTable
             // Dropping 1.
             [$idx, $key] = $this->splitAtFirstDot($key);
             // Now idx is the column. We don't care, as we already have it in currentColummn
-            $this->results[$key][$this->currentColumn] = $value->toArray();
+            $this->results[$key][$this->currentColumn] = $value->jsonSerialize();
         }
 
         if (empty($this->pendingColumns)) {

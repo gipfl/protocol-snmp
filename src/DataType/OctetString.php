@@ -22,7 +22,7 @@ class OctetString extends DataType
         return new OctetString($element->asOctetString()->string());
     }
 
-    public function toArray(): array
+    public function jsonSerialize(): array
     {
         $value = AsnTypeHelper::wantString($this->rawValue);
         return [

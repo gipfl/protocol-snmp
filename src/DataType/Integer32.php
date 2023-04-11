@@ -25,7 +25,7 @@ class Integer32 extends DataType
         return new Integer(AsnTypeHelper::wantGmpIntString($this->rawValue));
     }
 
-    public function toArray(): array
+    public function jsonSerialize(): array
     {
         return [
             'type'  => self::TYPE_TO_NAME_MAP[$this->getTag()],

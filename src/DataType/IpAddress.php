@@ -26,7 +26,7 @@ class IpAddress extends DataType
         parent::__construct($binaryIp);
     }
 
-    public function toArray(): array
+    public function jsonSerialize(): array
     {
         return [
             'type'  => self::TYPE_TO_NAME_MAP[$this->tag],

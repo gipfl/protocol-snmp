@@ -25,7 +25,7 @@ class NullType extends DataType
         return '(null)';
     }
 
-    public function toArray(): array
+    public function jsonSerialize(): array
     {
         return [
             'type'  => 'null',

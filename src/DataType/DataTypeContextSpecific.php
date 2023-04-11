@@ -27,7 +27,7 @@ class DataTypeContextSpecific extends DataType
         $this->tag = $rawValue;
     }
 
-    public function toArray(): array
+    public function jsonSerialize(): array
     {
         return [
             'type'  => 'context_specific',
