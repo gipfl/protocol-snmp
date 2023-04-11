@@ -4,6 +4,7 @@ namespace gipfl\Protocol\Snmp;
 
 use gipfl\Protocol\Snmp\DataType\DataType;
 use gipfl\Protocol\Snmp\DataType\NullType;
+use InvalidArgumentException;
 use Sop\ASN1\Type\Constructed\Sequence;
 use Sop\ASN1\Type\Primitive\ObjectIdentifier;
 
@@ -24,11 +25,17 @@ class VarBind
 
     public static function fromASN1(Sequence $varBind): static
     {
-        // $varBind->count() === 2
+        if ($varBind->count() !== 2) {
+            throw new InvalidArgumentException(sprintf(
+                'Cannot construct a VarBind from a sequence with %d instead of 2 elements',
+                $varBind->count()
+            ));
+        }
 
-        $oid = $varBind->at(0)->asObjectIdentifier()->oid();
-        $value = DataType::fromASN1($varBind->at(1));
+        return new static(
+            $varBind->at(0)->asObjectIdentifier()->oid(),
+            DataType::fromASN1($varBind->at(1))
+        );
 
-        return new static($oid, $value);
     }
 }
