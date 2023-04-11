@@ -81,7 +81,7 @@ class Socket implements EventEmitterInterface, RequestIdConsumer
     }
 
     /**
-     * @param array<string, string> $oidList oid => alias
+     * @param array<int|string, string> $oidList oid => alias
      */
     public function getNext(
         array $oidList,

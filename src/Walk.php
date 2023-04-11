@@ -13,7 +13,7 @@ class Walk
     protected Deferred $deferred;
     protected string $target;
     protected string $community;
-    /** @var array<string, array{'type': string, 'value': mixed}> */
+    /** @var array<string, DataType> */
     protected array $results;
     protected string $baseOid;
     protected ?string $nextOid = null;
@@ -99,10 +99,16 @@ class Walk
         $this->deferred->resolve($this->results);
     }
 
-    protected function handleResult($result): void
+    /**
+     * @param array{type: string, value: DataType} $result
+     */
+    protected function handleResult(array $result): void
     {
         $oid = $this->baseOid;
-        /** @var DataType $value */
+        /**
+         * @var string $newOid
+         * @var DataType $value
+         */
         foreach ($result as $newOid => $value) {
             if (
                 ! str_starts_with($newOid, $this->baseOid) // Other prefix
